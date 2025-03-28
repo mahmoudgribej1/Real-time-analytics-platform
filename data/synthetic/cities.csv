@@ -1,0 +1,25 @@
+city_id,city_name,governorate,latitude,longitude,population
+1,Ariana,Ariana,36.8665,10.1667,600000
+2,Beja,Beja,36.7253,9.1817,200000
+3,Ben Arous,Ben Arous,36.7538,10.2182,800000
+4,Bizerte,Bizerte,37.2744,9.8739,150000
+5,Gabes,Gabes,33.8815,10.098,350000
+6,Gafsa,Gafsa,34.4167,8.7833,130000
+7,Jendouba,Jendouba,36.5,8.7833,100000
+8,Kairouan,Kairouan,35.6781,10.0968,180000
+9,Kasserine,Kasserine,35.1675,8.8369,90000
+10,Kebili,Kebili,33.7038,8.97,70000
+11,Kef,Kef,36.1811,8.7147,120000
+12,Mahdia,Mahdia,35.5043,10.0968,140000
+13,Manouba,Manouba,36.8,10.1667,250000
+14,Medenine,Medenine,33.3541,10.5275,110000
+15,Monastir,Monastir,35.7673,10.811,220000
+16,Nabeul,Nabeul,36.4667,10.7333,700000
+17,Sfax,Sfax,34.7406,10.76,350000
+18,Sidi Bouzid,Sidi Bouzid,35.096,9.4825,200000
+19,Siliana,Siliana,36.0833,9.3667,280000
+20,Sousse,Sousse,35.8256,10.6084,650000
+21,Tataouine,Tataouine,32.9296,10.4517,45000
+22,Tozeur,Tozeur,33.9199,8.1337,110000
+23,Tunis,Tunis,36.8065,10.1815,2700000
+24,Zaghouan,Zaghouan,36.4022,10.1445,190000

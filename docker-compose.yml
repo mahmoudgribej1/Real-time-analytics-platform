@@ -1,0 +1,219 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: airflow
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      # Add these lines for CDC:
+      POSTGRES_INITDB_ARGS: "-E UTF8 --lc-collate=C --lc-ctype=C"
+      POSTGRES_HOST_AUTH_METHOD: "trust"  # For simplicity (adjust for production)
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"  # Enable logical replication
+    ports:
+      - "5435:5432"
+    networks:
+      - networkPFE
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow", "-d", "airflow"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+
+  #  airflow:
+  #    image: apache/airflow:2.8.1
+  #    depends_on:
+  #      postgres:
+  #        condition: service_healthy
+  #    environment:
+  #      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+  #      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+  #      AIRFLOW__CORE__FERNET_KEY: 'Nju3UeY2WJ-HZlKx1tvbT03zRwe-DTt6t-1iVYokP8E='
+  #      AIRFLOW__WEBSERVER__SECRET_KEY: 'temporary_secret_key'
+  #      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+  #      AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: 'false'
+  #      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
+  #      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
+  #    ports:
+  #      - "8081:8080"
+  #    volumes:
+  #      - ./etl_pipeline/dags:/opt/airflow/dags
+  #      - ./data:/opt/airflow/data
+  #      - airflow_logs:/opt/airflow/logs
+  #    command: >
+  #      bash -c "
+  #        airflow db init &&
+  #        airflow db upgrade &&
+  #        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+  #        airflow webserver & airflow scheduler
+  #      "
+  #    restart: always
+  #    healthcheck:
+  #      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+  #      interval: 30s
+  #      timeout: 30s
+  #      retries: 5
+  #      start_period: 30s
+#      networks:
+#        - networkPFE
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    ports:
+      - "2181:2181"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - networkPFE
+
+  kafka:
+    image: confluentinc/cp-kafka:7.6.1
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,EXTERNAL://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    healthcheck:
+      test: nc -z localhost 9092 || exit -1
+      start_period: 15s
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    networks:
+      - networkPFE
+
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:7.4.0
+    hostname: control-center
+    container_name: control-center
+    depends_on:
+      kafka:
+        condition: service_healthy
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'kafka:9092'
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      CONFLUENT_METRICS_ENABLE: 'false'
+      PORT: 9021
+    networks:
+      - networkPFE
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9021/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  debezium-ui:
+    image: debezium/debezium-ui:latest
+    container_name: debezium-ui
+    hostname: debezium-ui
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    ports:
+      - '8086:8080'
+    environment:
+      KAFKA_CONNECT_URIS: http://kafka-connect:8083
+
+    networks:
+      - networkPFE
+
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.6.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_REST_PORT: 8083
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_GROUP_ID: "connect-cluster"
+      CONNECT_CONFIG_STORAGE_TOPIC: "connect-configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "connect-status"
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_PLUGIN_PATH: "/usr/share/java"
+    ports:
+      - "8085:8083"
+    volumes:
+      - "E:/flavor-trend-streamsPFE/debezium-connector-postgres-2.5.0.Final-plugin/debezium-connector-postgres:/usr/share/java/debezium-connector-postgres"
+    networks:
+      - networkPFE
+
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8083/connectors"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  jobmanager:
+    image: flink:1.17
+    container_name: jobmanager
+    ports:
+      - "8082:8081"
+    command: jobmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+    networks:
+      - networkPFE
+
+  taskmanager:
+    image: flink:1.17
+    container_name: taskmanager
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+    networks:
+      - networkPFE
+
+volumes:
+  postgres_data:
+  airflow_logs:
+
+networks:
+  networkPFE:
+    driver: bridge

@@ -1,0 +1,2045 @@
+item_id,restaurant_id,item_name,item_category,item_price,available_quantity
+1,1,Cheesecake,Dessert,7.52,30
+2,1,Lemonade,Drinks,3.94,34
+3,1,Margherita Pizza,Casual,20.3,85
+4,1,Veggie Pizza,Casual,23.33,40
+5,1,Fruit Tart,Dessert,7.29,31
+6,1,Pepperoni Pizza,Casual,20.09,70
+7,1,Chicken Burger,Fast Food,7.55,88
+8,1,BBQ Chicken Pizza,Casual,17.93,87
+9,1,Fruit Tart,Dessert,6.43,27
+10,2,Iced Tea,Drinks,3.4,60
+11,2,Cheesecake,Dessert,8.01,80
+12,2,Lemonade,Drinks,6.73,29
+13,2,Iced Tea,Drinks,7.88,38
+14,2,Veggie Pizza,Casual,29.09,90
+15,2,Margherita Pizza,Casual,21.17,34
+16,2,Veggie Pizza,Casual,16.75,98
+17,2,Margherita Pizza,Casual,25.35,42
+18,2,Cheesecake,Dessert,7.08,61
+19,2,BBQ Chicken Pizza,Casual,18.26,56
+20,2,Fresh Juice,Drinks,3.6,56
+21,2,Makloub,Fast Food,13.71,28
+22,2,Cheese Burger,Fast Food,8.4,83
+23,2,Ice Cream Sundae,Dessert,6.66,92
+24,2,Cheesecake,Dessert,5.41,80
+25,3,Cheesecake,Dessert,8.84,58
+26,3,Margherita Pizza,Casual,16.12,89
+27,3,Cheese Burger,Fast Food,9.08,72
+28,3,Veggie Pizza,Casual,19.32,85
+29,3,Iced Tea,Drinks,6.37,51
+30,3,BBQ Chicken Pizza,Casual,24.68,25
+31,3,Cheesecake,Dessert,5.31,50
+32,3,Makloub,Fast Food,14.44,19
+33,3,Veggie Pizza,Casual,23.53,97
+34,3,Margherita Pizza,Casual,21.98,81
+35,3,Veggie Pizza,Casual,17.95,19
+36,3,Kebab,Fast Food,7.51,48
+37,3,BBQ Chicken Pizza,Casual,25.21,59
+38,4,Cheesecake,Dessert,9.94,91
+39,4,Makloub,Fast Food,5.13,63
+40,4,Fresh Juice,Drinks,4.27,86
+41,4,Iced Tea,Drinks,7.48,87
+42,4,Chicken Burger,Fast Food,12.96,76
+43,4,Fresh Juice,Drinks,2.05,19
+44,4,Fruit Tart,Dessert,7.91,23
+45,5,Veggie Pizza,Casual,,34
+46,5,Chawarma,Fast Food,,42
+47,5,Chicken Burger,Fast Food,9.81,81
+48,5,Iced Tea,Drinks,2.68,32
+49,5,Kebab,Fast Food,5.8,99
+50,5,Cheesecake,Dessert,9.25,89
+51,6,Lemonade,Drinks,3.57,14
+52,6,Cheese Burger,Fast Food,7.78,44
+53,6,Veggie Pizza,Casual,24.62,38
+54,6,Iced Tea,Drinks,7.06,64
+55,6,Libanais,Fast Food,6.7,100
+56,6,Ice Cream Sundae,Dessert,6.62,70
+57,6,Iced Tea,Drinks,7.39,99
+58,6,Pepperoni Pizza,Casual,,50
+59,6,Lemonade,Drinks,5.96,86
+60,6,BBQ Chicken Pizza,Casual,15.24,49
+61,6,Classic Burger,Fast Food,7.18,44
+62,7,Libanais,Fast Food,,45
+63,7,Margherita Pizza,Casual,20.12,65
+64,7,Chicken Burger,Fast Food,12.67,90
+65,7,Lemonade,Drinks,2.09,89
+66,7,Iced Tea,Drinks,6.06,60
+67,7,Tacos,Fast Food,5.82,31
+68,7,Classic Burger,Fast Food,7.91,59
+69,7,Pepperoni Pizza,Casual,27.58,46
+70,7,Kebab,Fast Food,,26
+71,7,Ice Cream Sundae,Dessert,5.3,54
+72,7,Veggie Pizza,Casual,18.61,30
+73,7,Cheesecake,Dessert,7.27,85
+74,7,Chocolate Cake,Dessert,8.61,63
+75,7,Ice Cream Sundae,Dessert,6.12,42
+76,7,Cheesecake,Dessert,5.85,52
+77,8,Fruit Tart,Dessert,7.96,91
+78,8,Cheese Burger,Fast Food,13.05,31
+79,8,BBQ Chicken Pizza,Casual,24.52,32
+80,8,Fruit Tart,Dessert,5.81,89
+81,8,Lemonade,Drinks,7.24,82
+82,8,Chicken Burger,Fast Food,7.24,76
+83,8,Ice Cream Sundae,Dessert,,10
+84,8,Kebab,Fast Food,5.9,83
+85,8,Chicken Burger,Fast Food,9.15,50
+86,8,Smoothie,Drinks,6.17,53
+87,8,Veggie Burger,Fast Food,11.08,71
+88,8,Iced Tea,Drinks,5.69,63
+89,8,Makloub,Fast Food,9.34,31
+90,9,Chocolate Cake,Dessert,5.7,60
+91,9,Pepperoni Pizza,Casual,21.11,18
+92,9,Lemonade,Drinks,2.86,32
+93,9,Smoothie,Drinks,7.36,34
+94,9,Margherita Pizza,Casual,25.68,88
+95,10,Fresh Juice,Drinks,6.83,16
+96,10,Pepperoni Pizza,Casual,26.07,96
+97,10,Margherita Pizza,Casual,20.61,46
+98,10,Kebab,Fast Food,7.5,93
+99,10,Fresh Juice,Drinks,6.06,90
+100,10,Margherita Pizza,Casual,28.66,79
+101,11,Margherita Pizza,Casual,,40
+102,11,Lemonade,Drinks,6.34,62
+103,11,Lemonade,Drinks,4.73,63
+104,11,Fruit Tart,Dessert,6.79,48
+105,11,Chocolate Cake,Dessert,9.5,74
+106,12,Ice Cream Sundae,Dessert,8.86,24
+107,12,Classic Burger,Fast Food,11.24,83
+108,12,Ice Cream Sundae,Dessert,9.11,78
+109,12,Pepperoni Pizza,Casual,17.83,20
+110,12,Veggie Pizza,Casual,29.75,49
+111,12,Ice Cream Sundae,Dessert,5.14,12
+112,13,Smoothie,Drinks,,27
+113,13,Fresh Juice,Drinks,3.69,23
+114,13,Chocolate Cake,Dessert,6.48,74
+115,13,Lemonade,Drinks,7.6,63
+116,13,Cheesecake,Dessert,6.27,27
+117,13,Lemonade,Drinks,3.05,46
+118,13,Chawarma,Fast Food,13.25,31
+119,14,Margherita Pizza,Casual,26.11,56
+120,14,BBQ Chicken Pizza,Casual,16.67,57
+121,14,Veggie Pizza,Casual,26.5,87
+122,14,Makloub,Fast Food,8.58,20
+123,14,Smoothie,Drinks,2.4,100
+124,14,Ice Cream Sundae,Dessert,6.97,47
+125,14,Fruit Tart,Dessert,6.61,40
+126,14,Classic Burger,Fast Food,14.69,31
+127,14,Cheesecake,Dessert,9.39,77
+128,14,Lemonade,Drinks,3.98,73
+129,15,Kebab,Fast Food,12.62,86
+130,15,Chocolate Cake,Dessert,8.42,58
+131,15,Fresh Juice,Drinks,5.7,39
+132,15,Lemonade,Drinks,5.85,53
+133,15,Chicken Burger,Fast Food,11.98,17
+134,16,Tacos,Fast Food,12.11,91
+135,16,Iced Tea,Drinks,7.1,15
+136,16,Margherita Pizza,Casual,18.32,48
+137,16,Tacos,Fast Food,6.28,97
+138,16,Chawarma,Fast Food,8.5,51
+139,16,BBQ Chicken Pizza,Casual,24.71,74
+140,16,Pepperoni Pizza,Casual,26.32,72
+141,16,Chocolate Cake,Dessert,8.4,64
+142,16,Fresh Juice,Drinks,6.46,24
+143,17,Fruit Tart,Dessert,5.4,63
+144,17,Smoothie,Drinks,5.39,63
+145,17,BBQ Chicken Pizza,Casual,24.59,53
+146,17,Ice Cream Sundae,Dessert,7.07,19
+147,17,Pepperoni Pizza,Casual,21.23,34
+148,17,Pepperoni Pizza,Casual,20.57,19
+149,17,Veggie Pizza,Casual,21.06,85
+150,17,Margherita Pizza,Casual,24.62,64
+151,17,Smoothie,Drinks,6.56,59
+152,17,Smoothie,Drinks,5.43,74
+153,18,Iced Tea,Drinks,4.55,38
+154,18,Libanais,Fast Food,11.27,43
+155,18,BBQ Chicken Pizza,Casual,27.46,33
+156,18,Veggie Pizza,Casual,25.98,64
+157,18,Cheesecake,Dessert,9.71,27
+158,18,Smoothie,Drinks,7.5,11
+159,18,Tacos,Fast Food,14.73,87
+160,18,Kebab,Fast Food,7.44,97
+161,18,Kebab,Fast Food,8.46,59
+162,18,Chawarma,Fast Food,6.74,11
+163,18,Iced Tea,Drinks,4.82,92
+164,18,Fruit Tart,Dessert,6.96,47
+165,18,Veggie Pizza,Casual,15.03,48
+166,18,Classic Burger,Fast Food,12.44,70
+167,18,Margherita Pizza,Casual,16.91,77
+168,19,Smoothie,Drinks,7.92,36
+169,19,Cheesecake,Dessert,6.15,53
+170,19,Fresh Juice,Drinks,5.09,29
+171,19,Veggie Burger,Fast Food,10.4,97
+172,19,Smoothie,Drinks,7.91,27
+173,19,Kebab,Fast Food,14.18,95
+174,19,Cheese Burger,Fast Food,14.3,74
+175,20,Lemonade,Drinks,2.18,36
+176,20,Lemonade,Drinks,3.37,93
+177,20,Fruit Tart,Dessert,5.37,41
+178,20,BBQ Chicken Pizza,Casual,19.9,75
+179,20,Ice Cream Sundae,Dessert,,35
+180,20,Fresh Juice,Drinks,6.01,86
+181,21,Veggie Burger,Fast Food,7.19,91
+182,21,Margherita Pizza,Casual,17.33,42
+183,21,Cheesecake,Dessert,7.24,98
+184,21,Fruit Tart,Dessert,5.49,90
+185,21,Chocolate Cake,Dessert,9.14,41
+186,21,Libanais,Fast Food,9.55,17
+187,21,Fresh Juice,Drinks,7.15,60
+188,21,Cheesecake,Dessert,9.27,47
+189,21,Kebab,Fast Food,12.99,86
+190,22,Pepperoni Pizza,Casual,28.6,19
+191,22,Chocolate Cake,Dessert,7.33,73
+192,22,Smoothie,Drinks,3.48,20
+193,22,Smoothie,Drinks,7.03,27
+194,22,Pepperoni Pizza,Casual,27.07,59
+195,22,Libanais,Fast Food,12.08,82
+196,22,Chicken Burger,Fast Food,10.62,43
+197,22,Cheesecake,Dessert,8.72,42
+198,22,Fruit Tart,Dessert,9.04,62
+199,22,Fresh Juice,Drinks,3.43,79
+200,22,Smoothie,Drinks,2.1,14
+201,22,Libanais,Fast Food,12.2,66
+202,22,Pepperoni Pizza,Casual,23.46,93
+203,23,BBQ Chicken Pizza,Casual,28.86,84
+204,23,Chocolate Cake,Dessert,7.3,63
+205,23,Fresh Juice,Drinks,3.96,39
+206,23,Fresh Juice,Drinks,4.96,15
+207,23,Iced Tea,Drinks,,27
+208,23,Veggie Burger,Fast Food,12.12,80
+209,23,Cheese Burger,Fast Food,12.58,83
+210,23,Lemonade,Drinks,4.57,38
+211,23,Iced Tea,Drinks,3.2,66
+212,23,Veggie Pizza,Casual,22.55,58
+213,24,Lemonade,Drinks,,91
+214,24,Classic Burger,Fast Food,11.59,51
+215,24,Smoothie,Drinks,7.08,85
+216,24,Lemonade,Drinks,3.91,60
+217,24,Iced Tea,Drinks,2.46,42
+218,24,Libanais,Fast Food,9.26,80
+219,24,Iced Tea,Drinks,2.3,55
+220,24,Fresh Juice,Drinks,2.96,37
+221,24,Chicken Burger,Fast Food,13.01,64
+222,24,Iced Tea,Drinks,7.91,75
+223,25,Libanais,Fast Food,8.06,21
+224,25,Fruit Tart,Dessert,6.58,69
+225,25,Classic Burger,Fast Food,,84
+226,25,Classic Burger,Fast Food,10.19,50
+227,25,Fruit Tart,Dessert,8.79,39
+228,26,Fruit Tart,Dessert,9.22,83
+229,26,Margherita Pizza,Casual,19.14,36
+230,26,Kebab,Fast Food,10.75,73
+231,26,Kebab,Fast Food,6.09,11
+232,26,Ice Cream Sundae,Dessert,8.3,91
+233,26,Cheesecake,Dessert,5.34,21
+234,26,Veggie Burger,Fast Food,11.01,11
+235,26,Cheesecake,Dessert,6.41,33
+236,26,Fruit Tart,Dessert,8.69,85
+237,26,Veggie Burger,Fast Food,6.4,81
+238,26,Lemonade,Drinks,4.34,65
+239,26,Chawarma,Fast Food,13.42,77
+240,26,Chocolate Cake,Dessert,8.91,49
+241,26,Veggie Burger,Fast Food,13.18,70
+242,26,BBQ Chicken Pizza,Casual,25.04,93
+243,27,Kebab,Fast Food,6.97,40
+244,27,Pepperoni Pizza,Casual,28.09,67
+245,27,Chicken Burger,Fast Food,8.82,75
+246,27,Margherita Pizza,Casual,20.22,49
+247,27,Kebab,Fast Food,7.22,23
+248,27,Tacos,Fast Food,5.56,66
+249,27,Lemonade,Drinks,4.96,85
+250,27,Pepperoni Pizza,Casual,28.12,17
+251,28,Smoothie,Drinks,3.62,55
+252,28,Pepperoni Pizza,Casual,15.19,63
+253,28,Chawarma,Fast Food,10.3,24
+254,28,Veggie Pizza,Casual,22.08,32
+255,28,Smoothie,Drinks,7.28,18
+256,28,BBQ Chicken Pizza,Casual,27.62,71
+257,28,Ice Cream Sundae,Dessert,8.73,50
+258,29,Smoothie,Drinks,4.13,48
+259,29,Cheesecake,Dessert,6.62,63
+260,29,Cheese Burger,Fast Food,8.65,23
+261,29,Cheese Burger,Fast Food,9.33,41
+262,29,Veggie Pizza,Casual,21.9,46
+263,29,Lemonade,Drinks,5.89,17
+264,29,Fresh Juice,Drinks,5.27,74
+265,29,Margherita Pizza,Casual,18.35,65
+266,30,Chicken Burger,Fast Food,8.2,64
+267,30,Veggie Burger,Fast Food,7.99,54
+268,30,Iced Tea,Drinks,7.12,79
+269,30,Pepperoni Pizza,Casual,29.57,56
+270,30,Veggie Pizza,Casual,21.78,53
+271,30,Libanais,Fast Food,13.74,70
+272,30,BBQ Chicken Pizza,Casual,23.16,91
+273,30,Pepperoni Pizza,Casual,29.93,28
+274,30,Fresh Juice,Drinks,5.99,95
+275,30,Iced Tea,Drinks,6.13,90
+276,31,Smoothie,Drinks,6.34,33
+277,31,BBQ Chicken Pizza,Casual,,97
+278,31,Ice Cream Sundae,Dessert,8.79,98
+279,31,BBQ Chicken Pizza,Casual,23.56,34
+280,31,Chicken Burger,Fast Food,10.72,45
+281,31,Chicken Burger,Fast Food,12.02,27
+282,31,Chawarma,Fast Food,7.41,84
+283,31,Chocolate Cake,Dessert,6.8,53
+284,31,Ice Cream Sundae,Dessert,7.7,31
+285,31,Cheesecake,Dessert,8.83,16
+286,31,Veggie Pizza,Casual,15.42,30
+287,32,BBQ Chicken Pizza,Casual,19.9,48
+288,32,Makloub,Fast Food,10.8,79
+289,32,Smoothie,Drinks,4.56,74
+290,32,Iced Tea,Drinks,2.89,56
+291,32,Kebab,Fast Food,13.5,62
+292,32,Fruit Tart,Dessert,8.13,48
+293,32,Lemonade,Drinks,6.08,78
+294,32,Pepperoni Pizza,Casual,,31
+295,32,Fruit Tart,Dessert,7.99,93
+296,32,Fruit Tart,Dessert,9.38,37
+297,32,Iced Tea,Drinks,3.21,12
+298,32,Fruit Tart,Dessert,,70
+299,32,BBQ Chicken Pizza,Casual,17.28,11
+300,33,BBQ Chicken Pizza,Casual,15.74,46
+301,33,Smoothie,Drinks,5.79,65
+302,33,Veggie Pizza,Casual,25.61,97
+303,33,Veggie Burger,Fast Food,5.61,98
+304,33,Chawarma,Fast Food,12.69,65
+305,33,Pepperoni Pizza,Casual,20.44,50
+306,33,Chocolate Cake,Dessert,5.01,91
+307,33,Fruit Tart,Dessert,9.63,58
+308,34,Veggie Pizza,Casual,27.56,91
+309,34,Kebab,Fast Food,9.27,14
+310,34,Lemonade,Drinks,6.44,17
+311,34,BBQ Chicken Pizza,Casual,19.44,85
+312,34,Cheese Burger,Fast Food,11.12,52
+313,34,Margherita Pizza,Casual,25.79,27
+314,34,Ice Cream Sundae,Dessert,5.12,59
+315,35,Smoothie,Drinks,4.82,38
+316,35,Margherita Pizza,Casual,15.84,32
+317,35,Cheesecake,Dessert,8.87,83
+318,35,Veggie Pizza,Casual,18.81,11
+319,35,Fresh Juice,Drinks,5.85,11
+320,35,Iced Tea,Drinks,4.25,31
+321,35,Margherita Pizza,Casual,24.58,13
+322,35,Lemonade,Drinks,3.52,53
+323,35,Pepperoni Pizza,Casual,26.64,73
+324,35,Makloub,Fast Food,12.6,55
+325,35,Chocolate Cake,Dessert,9.6,80
+326,35,Veggie Pizza,Casual,23.68,30
+327,35,Chicken Burger,Fast Food,11.71,80
+328,35,Libanais,Fast Food,6.81,75
+329,35,Cheesecake,Dessert,7.2,60
+330,36,Cheese Burger,Fast Food,6.58,87
+331,36,Iced Tea,Drinks,2.27,51
+332,36,Tacos,Fast Food,14.87,27
+333,36,Chocolate Cake,Dessert,8.0,40
+334,36,Veggie Burger,Fast Food,11.88,31
+335,36,Chocolate Cake,Dessert,5.84,42
+336,36,Iced Tea,Drinks,3.44,39
+337,36,Ice Cream Sundae,Dessert,,96
+338,36,BBQ Chicken Pizza,Casual,20.32,36
+339,36,Cheesecake,Dessert,7.81,55
+340,36,Veggie Burger,Fast Food,5.26,62
+341,36,Chocolate Cake,Dessert,7.06,41
+342,36,Margherita Pizza,Casual,27.18,52
+343,37,Fruit Tart,Dessert,6.67,13
+344,37,Chocolate Cake,Dessert,9.56,69
+345,37,Iced Tea,Drinks,5.69,71
+346,37,Ice Cream Sundae,Dessert,7.86,39
+347,37,Cheese Burger,Fast Food,9.84,42
+348,38,Veggie Burger,Fast Food,8.57,77
+349,38,Fruit Tart,Dessert,9.67,36
+350,38,Smoothie,Drinks,5.59,61
+351,38,Fresh Juice,Drinks,3.31,58
+352,38,Makloub,Fast Food,12.95,43
+353,39,Margherita Pizza,Casual,23.15,34
+354,39,Iced Tea,Drinks,2.92,26
+355,39,Chocolate Cake,Dessert,7.9,56
+356,39,Chawarma,Fast Food,,60
+357,39,Fruit Tart,Dessert,6.87,98
+358,39,Lemonade,Drinks,7.68,16
+359,40,Chawarma,Fast Food,9.7,18
+360,40,Smoothie,Drinks,7.01,80
+361,40,Veggie Burger,Fast Food,9.87,44
+362,40,Pepperoni Pizza,Casual,18.3,36
+363,40,Cheesecake,Dessert,5.68,99
+364,40,Fresh Juice,Drinks,5.22,54
+365,40,Pepperoni Pizza,Casual,23.38,69
+366,40,Veggie Pizza,Casual,15.45,20
+367,41,Smoothie,Drinks,3.97,72
+368,41,BBQ Chicken Pizza,Casual,15.55,85
+369,41,Chawarma,Fast Food,5.68,49
+370,41,Fruit Tart,Dessert,6.68,71
+371,41,Iced Tea,Drinks,2.56,14
+372,41,Veggie Pizza,Casual,,70
+373,41,BBQ Chicken Pizza,Casual,27.73,84
+374,41,Classic Burger,Fast Food,12.46,47
+375,41,Tacos,Fast Food,8.14,89
+376,42,Cheesecake,Dessert,,30
+377,42,Kebab,Fast Food,10.06,94
+378,42,Fresh Juice,Drinks,4.55,83
+379,42,Chawarma,Fast Food,9.63,39
+380,42,Iced Tea,Drinks,2.42,14
+381,42,Ice Cream Sundae,Dessert,7.78,63
+382,42,Fresh Juice,Drinks,4.31,71
+383,42,Margherita Pizza,Casual,17.15,85
+384,42,Chicken Burger,Fast Food,12.58,89
+385,42,Cheesecake,Dessert,9.78,84
+386,42,Chawarma,Fast Food,,77
+387,42,Chocolate Cake,Dessert,6.74,81
+388,42,Ice Cream Sundae,Dessert,8.57,17
+389,42,Cheesecake,Dessert,7.08,25
+390,42,Ice Cream Sundae,Dessert,9.85,12
+391,43,Chawarma,Fast Food,13.35,42
+392,43,Makloub,Fast Food,5.02,17
+393,43,Chocolate Cake,Dessert,6.85,15
+394,43,Pepperoni Pizza,Casual,29.92,16
+395,43,Smoothie,Drinks,2.24,87
+396,43,Iced Tea,Drinks,5.14,30
+397,43,Veggie Pizza,Casual,19.58,68
+398,43,Veggie Pizza,Casual,23.83,72
+399,43,Veggie Pizza,Casual,27.79,86
+400,43,Iced Tea,Drinks,4.45,51
+401,43,Fruit Tart,Dessert,6.83,69
+402,43,BBQ Chicken Pizza,Casual,28.65,99
+403,44,Pepperoni Pizza,Casual,25.71,17
+404,44,Lemonade,Drinks,5.35,34
+405,44,Fresh Juice,Drinks,2.64,47
+406,44,Margherita Pizza,Casual,29.45,30
+407,44,Fruit Tart,Dessert,5.29,47
+408,44,Veggie Burger,Fast Food,9.09,60
+409,44,Lemonade,Drinks,4.88,10
+410,44,Fresh Juice,Drinks,7.29,83
+411,44,Fresh Juice,Drinks,3.28,51
+412,44,Chawarma,Fast Food,12.61,32
+413,45,Margherita Pizza,Casual,18.16,80
+414,45,Tacos,Fast Food,9.07,60
+415,45,Pepperoni Pizza,Casual,21.58,28
+416,45,Ice Cream Sundae,Dessert,5.36,91
+417,45,Margherita Pizza,Casual,19.63,63
+418,45,Fruit Tart,Dessert,7.09,46
+419,45,Lemonade,Drinks,5.07,93
+420,45,Veggie Burger,Fast Food,5.21,98
+421,45,Libanais,Fast Food,12.03,14
+422,45,BBQ Chicken Pizza,Casual,18.56,13
+423,45,Iced Tea,Drinks,2.81,96
+424,45,Chawarma,Fast Food,9.35,51
+425,46,Libanais,Fast Food,11.35,45
+426,46,Margherita Pizza,Casual,21.18,82
+427,46,Cheesecake,Dessert,8.51,74
+428,46,Fresh Juice,Drinks,5.99,56
+429,46,Veggie Burger,Fast Food,10.19,52
+430,46,Iced Tea,Drinks,3.34,66
+431,46,Smoothie,Drinks,6.99,27
+432,46,Fresh Juice,Drinks,2.18,11
+433,46,Ice Cream Sundae,Dessert,5.04,30
+434,47,Chocolate Cake,Dessert,7.66,44
+435,47,Chocolate Cake,Dessert,5.95,96
+436,47,Iced Tea,Drinks,3.91,60
+437,47,BBQ Chicken Pizza,Casual,21.46,14
+438,47,Iced Tea,Drinks,4.08,56
+439,47,Tacos,Fast Food,14.51,67
+440,47,Chocolate Cake,Dessert,6.0,76
+441,47,Ice Cream Sundae,Dessert,9.18,32
+442,47,Iced Tea,Drinks,7.21,52
+443,47,Cheese Burger,Fast Food,9.93,98
+444,47,Margherita Pizza,Casual,19.03,21
+445,47,Smoothie,Drinks,2.46,29
+446,47,Smoothie,Drinks,6.87,26
+447,47,Fruit Tart,Dessert,,96
+448,48,Classic Burger,Fast Food,10.28,23
+449,48,BBQ Chicken Pizza,Casual,23.38,44
+450,48,Kebab,Fast Food,14.67,42
+451,48,BBQ Chicken Pizza,Casual,29.23,80
+452,48,Chicken Burger,Fast Food,10.15,72
+453,48,Margherita Pizza,Casual,22.82,12
+454,48,Chocolate Cake,Dessert,8.27,75
+455,48,Kebab,Fast Food,5.16,37
+456,48,Chocolate Cake,Dessert,5.17,24
+457,48,Libanais,Fast Food,14.49,38
+458,48,Fruit Tart,Dessert,7.96,14
+459,48,Margherita Pizza,Casual,29.99,22
+460,48,Lemonade,Drinks,4.51,27
+461,49,Chicken Burger,Fast Food,13.8,65
+462,49,Lemonade,Drinks,2.87,24
+463,49,Veggie Pizza,Casual,27.96,60
+464,49,Margherita Pizza,Casual,27.13,89
+465,49,Ice Cream Sundae,Dessert,9.24,59
+466,49,Chicken Burger,Fast Food,,38
+467,49,Makloub,Fast Food,8.69,97
+468,49,Fruit Tart,Dessert,9.36,63
+469,49,Smoothie,Drinks,7.16,75
+470,49,Veggie Burger,Fast Food,,83
+471,49,Chocolate Cake,Dessert,9.64,82
+472,49,Smoothie,Drinks,4.39,55
+473,49,Kebab,Fast Food,13.76,100
+474,49,Cheesecake,Dessert,5.65,26
+475,49,Margherita Pizza,Casual,17.22,44
+476,50,Lemonade,Drinks,7.5,62
+477,50,Veggie Burger,Fast Food,10.69,56
+478,50,Smoothie,Drinks,4.38,74
+479,50,Libanais,Fast Food,7.0,41
+480,50,Chocolate Cake,Dessert,6.84,91
+481,50,Cheesecake,Dessert,7.37,77
+482,50,Chocolate Cake,Dessert,5.08,88
+483,50,Smoothie,Drinks,3.18,57
+484,50,Iced Tea,Drinks,4.61,30
+485,50,Pepperoni Pizza,Casual,18.54,32
+486,50,Smoothie,Drinks,3.53,78
+487,50,Veggie Pizza,Casual,24.52,70
+488,50,Chicken Burger,Fast Food,12.83,27
+489,51,Cheese Burger,Fast Food,9.97,96
+490,51,Chawarma,Fast Food,7.96,12
+491,51,BBQ Chicken Pizza,Casual,23.57,44
+492,51,Iced Tea,Drinks,6.0,45
+493,51,Makloub,Fast Food,11.21,13
+494,51,Pepperoni Pizza,Casual,26.04,25
+495,51,Lemonade,Drinks,7.14,91
+496,51,Chawarma,Fast Food,9.86,42
+497,51,Lemonade,Drinks,2.81,16
+498,51,Cheese Burger,Fast Food,5.62,10
+499,51,Veggie Pizza,Casual,22.02,81
+500,51,BBQ Chicken Pizza,Casual,,20
+501,51,Lemonade,Drinks,6.72,54
+502,52,Pepperoni Pizza,Casual,26.2,46
+503,52,Pepperoni Pizza,Casual,23.87,88
+504,52,Pepperoni Pizza,Casual,20.4,73
+505,52,Lemonade,Drinks,4.74,42
+506,52,Fruit Tart,Dessert,5.24,23
+507,52,Cheesecake,Dessert,9.68,46
+508,52,Fruit Tart,Dessert,6.14,58
+509,52,Pepperoni Pizza,Casual,20.94,78
+510,52,Smoothie,Drinks,6.7,95
+511,52,Fruit Tart,Dessert,8.44,98
+512,52,Veggie Pizza,Casual,26.87,49
+513,52,Lemonade,Drinks,4.3,99
+514,52,Pepperoni Pizza,Casual,18.62,92
+515,52,Chicken Burger,Fast Food,14.34,49
+516,52,Fresh Juice,Drinks,6.28,100
+517,53,Smoothie,Drinks,7.92,92
+518,53,Fresh Juice,Drinks,6.57,76
+519,53,Iced Tea,Drinks,6.48,20
+520,53,Veggie Pizza,Casual,19.36,91
+521,53,Cheesecake,Dessert,5.32,81
+522,53,Fruit Tart,Dessert,9.76,52
+523,53,Cheese Burger,Fast Food,9.61,73
+524,53,Lemonade,Drinks,6.05,74
+525,53,Smoothie,Drinks,7.76,89
+526,53,Lemonade,Drinks,6.25,80
+527,53,Pepperoni Pizza,Casual,,80
+528,53,Classic Burger,Fast Food,5.97,42
+529,53,BBQ Chicken Pizza,Casual,23.94,60
+530,53,Veggie Pizza,Casual,22.33,85
+531,53,Chocolate Cake,Dessert,7.91,15
+532,54,Lemonade,Drinks,6.18,95
+533,54,Kebab,Fast Food,,43
+534,54,Fruit Tart,Dessert,6.36,94
+535,54,BBQ Chicken Pizza,Casual,28.5,47
+536,54,Lemonade,Drinks,5.96,89
+537,54,Cheesecake,Dessert,9.75,54
+538,54,Tacos,Fast Food,9.65,52
+539,54,Chicken Burger,Fast Food,13.65,42
+540,54,Pepperoni Pizza,Casual,29.17,69
+541,54,Fruit Tart,Dessert,7.49,37
+542,54,Cheesecake,Dessert,9.16,52
+543,54,Smoothie,Drinks,,95
+544,54,Classic Burger,Fast Food,11.47,66
+545,54,Makloub,Fast Food,,71
+546,55,Margherita Pizza,Casual,21.19,94
+547,55,Tacos,Fast Food,14.96,60
+548,55,Lemonade,Drinks,3.64,29
+549,55,Tacos,Fast Food,14.36,47
+550,55,Veggie Pizza,Casual,22.51,41
+551,55,Veggie Burger,Fast Food,12.57,59
+552,56,Cheesecake,Dessert,6.63,67
+553,56,Lemonade,Drinks,6.38,70
+554,56,Classic Burger,Fast Food,6.76,98
+555,56,Veggie Pizza,Casual,27.62,44
+556,56,Fresh Juice,Drinks,4.27,43
+557,56,BBQ Chicken Pizza,Casual,18.55,83
+558,56,Iced Tea,Drinks,7.5,52
+559,56,Smoothie,Drinks,5.48,14
+560,56,Chocolate Cake,Dessert,9.18,60
+561,56,Iced Tea,Drinks,2.37,60
+562,56,BBQ Chicken Pizza,Casual,28.88,16
+563,56,Chocolate Cake,Dessert,5.28,75
+564,56,Fresh Juice,Drinks,7.04,74
+565,56,Cheese Burger,Fast Food,11.54,35
+566,57,BBQ Chicken Pizza,Casual,17.4,90
+567,57,Veggie Pizza,Casual,23.16,66
+568,57,Lemonade,Drinks,4.01,48
+569,57,Tacos,Fast Food,6.82,85
+570,57,Fresh Juice,Drinks,6.22,33
+571,57,Fresh Juice,Drinks,,26
+572,57,Pepperoni Pizza,Casual,27.38,37
+573,57,BBQ Chicken Pizza,Casual,17.93,43
+574,57,Fresh Juice,Drinks,3.5,79
+575,57,Chocolate Cake,Dessert,7.41,98
+576,57,Margherita Pizza,Casual,17.59,90
+577,57,Chocolate Cake,Dessert,6.77,62
+578,58,Lemonade,Drinks,7.44,53
+579,58,Pepperoni Pizza,Casual,20.53,26
+580,58,Fruit Tart,Dessert,9.35,65
+581,58,Margherita Pizza,Casual,17.27,28
+582,58,Pepperoni Pizza,Casual,20.35,28
+583,58,Lemonade,Drinks,6.36,34
+584,59,Smoothie,Drinks,2.94,77
+585,59,Fruit Tart,Dessert,6.38,56
+586,59,Chocolate Cake,Dessert,5.75,76
+587,59,Margherita Pizza,Casual,28.85,25
+588,59,Chocolate Cake,Dessert,5.25,79
+589,59,Smoothie,Drinks,3.86,54
+590,59,Libanais,Fast Food,11.51,50
+591,59,Cheese Burger,Fast Food,,92
+592,59,Lemonade,Drinks,6.82,43
+593,59,Fruit Tart,Dessert,7.94,67
+594,60,Lemonade,Drinks,4.3,91
+595,60,Fruit Tart,Dessert,6.21,38
+596,60,Veggie Pizza,Casual,21.64,83
+597,60,Iced Tea,Drinks,4.88,28
+598,60,BBQ Chicken Pizza,Casual,17.55,24
+599,60,Libanais,Fast Food,,37
+600,60,Smoothie,Drinks,7.32,73
+601,60,Veggie Pizza,Casual,15.75,31
+602,60,Makloub,Fast Food,,91
+603,60,Makloub,Fast Food,12.52,13
+604,60,Lemonade,Drinks,2.46,55
+605,60,Lemonade,Drinks,7.82,58
+606,60,Kebab,Fast Food,14.36,84
+607,61,Tacos,Fast Food,9.85,39
+608,61,Lemonade,Drinks,5.68,92
+609,61,Fruit Tart,Dessert,7.53,86
+610,61,Ice Cream Sundae,Dessert,6.22,90
+611,61,Ice Cream Sundae,Dessert,8.96,86
+612,61,Fresh Juice,Drinks,3.46,82
+613,62,Veggie Pizza,Casual,22.16,71
+614,62,Cheesecake,Dessert,5.79,28
+615,62,Veggie Pizza,Casual,21.67,59
+616,62,Cheese Burger,Fast Food,12.56,76
+617,62,Smoothie,Drinks,5.56,95
+618,62,Pepperoni Pizza,Casual,27.21,15
+619,62,Classic Burger,Fast Food,5.12,46
+620,62,Chocolate Cake,Dessert,6.9,80
+621,62,Ice Cream Sundae,Dessert,,82
+622,62,Veggie Burger,Fast Food,14.26,47
+623,63,BBQ Chicken Pizza,Casual,17.02,88
+624,63,Pepperoni Pizza,Casual,28.65,62
+625,63,Cheesecake,Dessert,9.39,34
+626,63,Fruit Tart,Dessert,9.53,84
+627,63,Chawarma,Fast Food,6.56,33
+628,63,Chawarma,Fast Food,10.25,81
+629,63,Smoothie,Drinks,5.03,80
+630,63,BBQ Chicken Pizza,Casual,21.98,64
+631,63,Margherita Pizza,Casual,22.03,38
+632,63,BBQ Chicken Pizza,Casual,21.18,82
+633,63,Lemonade,Drinks,3.96,52
+634,64,Makloub,Fast Food,8.64,15
+635,64,Iced Tea,Drinks,2.94,88
+636,64,Cheese Burger,Fast Food,,66
+637,64,Pepperoni Pizza,Casual,17.21,55
+638,64,BBQ Chicken Pizza,Casual,20.18,59
+639,65,Libanais,Fast Food,11.71,54
+640,65,Lemonade,Drinks,4.75,50
+641,65,BBQ Chicken Pizza,Casual,27.02,50
+642,65,Kebab,Fast Food,5.34,74
+643,65,Chocolate Cake,Dessert,8.56,35
+644,65,Libanais,Fast Food,8.92,89
+645,65,Iced Tea,Drinks,3.3,89
+646,65,Chocolate Cake,Dessert,8.7,13
+647,66,Veggie Burger,Fast Food,9.09,63
+648,66,Iced Tea,Drinks,2.77,23
+649,66,Fruit Tart,Dessert,7.76,13
+650,66,BBQ Chicken Pizza,Casual,22.81,52
+651,66,BBQ Chicken Pizza,Casual,27.21,29
+652,66,Makloub,Fast Food,12.25,31
+653,66,Chocolate Cake,Dessert,5.52,40
+654,66,Chawarma,Fast Food,10.66,77
+655,66,Cheesecake,Dessert,,81
+656,66,Cheesecake,Dessert,7.13,76
+657,67,Lemonade,Drinks,5.21,64
+658,67,Fruit Tart,Dessert,,61
+659,67,Lemonade,Drinks,7.6,82
+660,67,Fruit Tart,Dessert,8.68,51
+661,67,Chocolate Cake,Dessert,6.59,91
+662,67,Lemonade,Drinks,2.79,11
+663,68,Chicken Burger,Fast Food,13.25,78
+664,68,Classic Burger,Fast Food,14.12,51
+665,68,Iced Tea,Drinks,4.91,47
+666,68,Fruit Tart,Dessert,5.23,12
+667,68,Veggie Pizza,Casual,15.25,46
+668,68,Libanais,Fast Food,9.67,48
+669,68,Margherita Pizza,Casual,15.21,95
+670,68,Chawarma,Fast Food,13.22,21
+671,68,Ice Cream Sundae,Dessert,9.85,21
+672,69,Chocolate Cake,Dessert,7.2,93
+673,69,Chocolate Cake,Dessert,,49
+674,69,Ice Cream Sundae,Dessert,,92
+675,69,Pepperoni Pizza,Casual,15.35,83
+676,69,Chawarma,Fast Food,12.9,89
+677,69,Veggie Pizza,Casual,20.22,99
+678,69,Veggie Burger,Fast Food,8.94,81
+679,69,BBQ Chicken Pizza,Casual,17.1,31
+680,70,Ice Cream Sundae,Dessert,9.58,22
+681,70,Fresh Juice,Drinks,3.33,54
+682,70,Makloub,Fast Food,11.68,43
+683,70,Fruit Tart,Dessert,6.24,87
+684,70,Classic Burger,Fast Food,7.6,37
+685,70,Makloub,Fast Food,13.73,80
+686,70,Lemonade,Drinks,7.05,23
+687,70,Chocolate Cake,Dessert,6.88,66
+688,70,Kebab,Fast Food,7.11,73
+689,71,Chawarma,Fast Food,14.59,81
+690,71,Veggie Burger,Fast Food,7.3,90
+691,71,Fruit Tart,Dessert,8.4,80
+692,71,Libanais,Fast Food,8.81,51
+693,71,Fruit Tart,Dessert,5.77,66
+694,72,Chicken Burger,Fast Food,7.19,23
+695,72,BBQ Chicken Pizza,Casual,22.51,60
+696,72,Pepperoni Pizza,Casual,29.16,84
+697,72,Fruit Tart,Dessert,8.19,49
+698,72,Smoothie,Drinks,5.33,90
+699,72,Fresh Juice,Drinks,3.39,38
+700,72,Libanais,Fast Food,5.94,64
+701,72,Makloub,Fast Food,14.38,20
+702,73,Fruit Tart,Dessert,7.09,14
+703,73,Ice Cream Sundae,Dessert,6.85,65
+704,73,Ice Cream Sundae,Dessert,8.41,74
+705,73,BBQ Chicken Pizza,Casual,19.29,57
+706,73,Chocolate Cake,Dessert,9.2,24
+707,73,BBQ Chicken Pizza,Casual,18.81,74
+708,73,Lemonade,Drinks,5.62,80
+709,73,BBQ Chicken Pizza,Casual,20.88,51
+710,73,Veggie Pizza,Casual,27.25,95
+711,74,Tacos,Fast Food,11.76,49
+712,74,Smoothie,Drinks,7.36,10
+713,74,BBQ Chicken Pizza,Casual,17.86,34
+714,74,Cheesecake,Dessert,6.71,21
+715,74,Pepperoni Pizza,Casual,21.45,29
+716,74,Veggie Burger,Fast Food,14.39,98
+717,74,Ice Cream Sundae,Dessert,5.04,95
+718,74,Ice Cream Sundae,Dessert,9.35,90
+719,74,Cheesecake,Dessert,6.7,57
+720,74,Fresh Juice,Drinks,3.64,77
+721,74,Margherita Pizza,Casual,22.06,29
+722,75,Pepperoni Pizza,Casual,25.38,33
+723,75,BBQ Chicken Pizza,Casual,16.58,41
+724,75,BBQ Chicken Pizza,Casual,21.77,41
+725,75,BBQ Chicken Pizza,Casual,21.71,64
+726,75,Smoothie,Drinks,5.69,74
+727,75,Makloub,Fast Food,10.37,67
+728,75,Smoothie,Drinks,2.91,83
+729,75,Ice Cream Sundae,Dessert,5.97,19
+730,75,BBQ Chicken Pizza,Casual,24.56,73
+731,75,BBQ Chicken Pizza,Casual,18.91,87
+732,75,Libanais,Fast Food,11.49,66
+733,76,Pepperoni Pizza,Casual,,19
+734,76,Fresh Juice,Drinks,6.27,36
+735,76,Tacos,Fast Food,5.15,41
+736,76,Chocolate Cake,Dessert,7.77,78
+737,76,Pepperoni Pizza,Casual,24.81,95
+738,76,Kebab,Fast Food,,60
+739,76,Smoothie,Drinks,2.07,41
+740,76,Iced Tea,Drinks,7.21,86
+741,76,Veggie Pizza,Casual,16.08,55
+742,76,Cheesecake,Dessert,7.72,22
+743,76,Fruit Tart,Dessert,9.05,50
+744,76,Classic Burger,Fast Food,12.75,11
+745,76,Iced Tea,Drinks,4.28,17
+746,76,Fruit Tart,Dessert,,28
+747,76,Iced Tea,Drinks,3.87,73
+748,77,Pepperoni Pizza,Casual,29.39,23
+749,77,BBQ Chicken Pizza,Casual,16.49,41
+750,77,Chocolate Cake,Dessert,5.63,17
+751,77,Chocolate Cake,Dessert,9.33,88
+752,77,Fresh Juice,Drinks,6.25,77
+753,77,Classic Burger,Fast Food,11.12,92
+754,77,Cheesecake,Dessert,7.11,60
+755,77,Smoothie,Drinks,,78
+756,77,BBQ Chicken Pizza,Casual,26.44,81
+757,77,Margherita Pizza,Casual,21.64,38
+758,77,Iced Tea,Drinks,6.12,68
+759,77,Makloub,Fast Food,10.79,34
+760,77,Chicken Burger,Fast Food,,16
+761,78,Iced Tea,Drinks,2.24,10
+762,78,Veggie Pizza,Casual,22.7,51
+763,78,Iced Tea,Drinks,3.01,39
+764,78,Libanais,Fast Food,6.53,36
+765,78,Pepperoni Pizza,Casual,25.06,32
+766,78,Ice Cream Sundae,Dessert,,47
+767,78,Veggie Pizza,Casual,28.25,47
+768,78,Margherita Pizza,Casual,21.03,49
+769,78,Ice Cream Sundae,Dessert,5.26,70
+770,78,Veggie Pizza,Casual,18.25,62
+771,79,BBQ Chicken Pizza,Casual,20.39,91
+772,79,Chocolate Cake,Dessert,9.59,79
+773,79,BBQ Chicken Pizza,Casual,15.2,73
+774,79,Fresh Juice,Drinks,2.33,34
+775,79,Tacos,Fast Food,5.95,19
+776,79,Veggie Pizza,Casual,25.6,10
+777,79,Cheesecake,Dessert,5.55,57
+778,79,Lemonade,Drinks,2.69,20
+779,79,Fruit Tart,Dessert,,89
+780,79,Pepperoni Pizza,Casual,15.11,65
+781,79,Pepperoni Pizza,Casual,20.75,97
+782,79,Margherita Pizza,Casual,26.15,26
+783,79,Lemonade,Drinks,3.36,24
+784,79,Fresh Juice,Drinks,7.42,29
+785,80,Classic Burger,Fast Food,5.86,67
+786,80,Makloub,Fast Food,14.21,42
+787,80,Libanais,Fast Food,11.04,91
+788,80,Chocolate Cake,Dessert,7.99,100
+789,80,Classic Burger,Fast Food,12.57,52
+790,80,Lemonade,Drinks,3.4,55
+791,80,BBQ Chicken Pizza,Casual,20.47,57
+792,80,Tacos,Fast Food,7.39,33
+793,81,Veggie Burger,Fast Food,5.28,100
+794,81,BBQ Chicken Pizza,Casual,16.47,60
+795,81,Smoothie,Drinks,2.13,47
+796,81,Pepperoni Pizza,Casual,21.69,66
+797,81,Chocolate Cake,Dessert,7.9,57
+798,81,Fresh Juice,Drinks,3.15,26
+799,81,Lemonade,Drinks,6.07,54
+800,81,BBQ Chicken Pizza,Casual,19.74,69
+801,81,Chawarma,Fast Food,10.54,41
+802,82,Fresh Juice,Drinks,7.74,21
+803,82,Makloub,Fast Food,7.63,30
+804,82,Ice Cream Sundae,Dessert,9.43,63
+805,82,Iced Tea,Drinks,6.04,36
+806,82,Fresh Juice,Drinks,4.82,43
+807,82,Classic Burger,Fast Food,9.02,51
+808,83,Chocolate Cake,Dessert,7.38,10
+809,83,Veggie Pizza,Casual,,25
+810,83,Tacos,Fast Food,14.06,69
+811,83,Chawarma,Fast Food,11.5,14
+812,83,Cheese Burger,Fast Food,9.52,78
+813,83,Margherita Pizza,Casual,22.84,93
+814,83,Tacos,Fast Food,14.38,50
+815,83,Lemonade,Drinks,7.03,43
+816,83,Classic Burger,Fast Food,5.64,93
+817,84,Cheesecake,Dessert,8.61,100
+818,84,Iced Tea,Drinks,2.45,63
+819,84,Cheesecake,Dessert,8.44,48
+820,84,Cheese Burger,Fast Food,14.99,50
+821,84,Fruit Tart,Dessert,5.72,77
+822,84,Pepperoni Pizza,Casual,27.64,92
+823,84,Smoothie,Drinks,2.44,20
+824,84,Smoothie,Drinks,3.35,86
+825,84,Chocolate Cake,Dessert,6.69,29
+826,84,Veggie Pizza,Casual,21.34,50
+827,85,Tacos,Fast Food,7.57,34
+828,85,Margherita Pizza,Casual,26.28,44
+829,85,Chocolate Cake,Dessert,8.9,92
+830,85,Chocolate Cake,Dessert,9.41,70
+831,85,Veggie Burger,Fast Food,7.91,64
+832,85,Margherita Pizza,Casual,15.18,73
+833,85,Tacos,Fast Food,10.77,97
+834,86,Lemonade,Drinks,5.34,77
+835,86,Margherita Pizza,Casual,25.43,51
+836,86,Ice Cream Sundae,Dessert,9.19,40
+837,86,Veggie Pizza,Casual,20.57,93
+838,86,Iced Tea,Drinks,5.62,14
+839,86,Chawarma,Fast Food,8.6,56
+840,86,Margherita Pizza,Casual,27.63,71
+841,86,Chocolate Cake,Dessert,5.02,82
+842,86,BBQ Chicken Pizza,Casual,,24
+843,86,Fruit Tart,Dessert,8.48,44
+844,87,Libanais,Fast Food,5.21,94
+845,87,Chocolate Cake,Dessert,7.42,83
+846,87,Margherita Pizza,Casual,21.7,29
+847,87,Lemonade,Drinks,4.38,36
+848,87,Veggie Pizza,Casual,29.1,22
+849,87,Libanais,Fast Food,5.35,98
+850,87,Iced Tea,Drinks,5.08,88
+851,87,Kebab,Fast Food,14.97,93
+852,87,Chawarma,Fast Food,7.01,25
+853,87,Margherita Pizza,Casual,23.74,87
+854,87,Pepperoni Pizza,Casual,28.21,36
+855,87,Margherita Pizza,Casual,20.85,73
+856,87,Veggie Pizza,Casual,,98
+857,87,Veggie Pizza,Casual,28.38,25
+858,87,Iced Tea,Drinks,6.2,43
+859,88,Veggie Pizza,Casual,22.45,100
+860,88,Iced Tea,Drinks,3.89,72
+861,88,BBQ Chicken Pizza,Casual,17.7,22
+862,88,Cheesecake,Dessert,,42
+863,88,Margherita Pizza,Casual,18.58,71
+864,88,Chocolate Cake,Dessert,7.54,18
+865,89,Cheesecake,Dessert,9.89,94
+866,89,Cheesecake,Dessert,9.23,52
+867,89,Margherita Pizza,Casual,23.62,55
+868,89,Lemonade,Drinks,7.81,87
+869,89,BBQ Chicken Pizza,Casual,26.76,72
+870,89,BBQ Chicken Pizza,Casual,21.81,38
+871,89,Chawarma,Fast Food,12.85,19
+872,89,Pepperoni Pizza,Casual,19.81,23
+873,89,Veggie Burger,Fast Food,5.51,13
+874,89,Smoothie,Drinks,7.67,96
+875,89,Chicken Burger,Fast Food,9.05,83
+876,89,Ice Cream Sundae,Dessert,9.38,31
+877,89,Pepperoni Pizza,Casual,16.89,39
+878,89,Margherita Pizza,Casual,26.78,77
+879,90,Fresh Juice,Drinks,6.54,83
+880,90,Cheesecake,Dessert,9.17,41
+881,90,Fresh Juice,Drinks,7.85,81
+882,90,Iced Tea,Drinks,3.02,38
+883,90,Chawarma,Fast Food,12.41,33
+884,90,BBQ Chicken Pizza,Casual,22.74,89
+885,90,BBQ Chicken Pizza,Casual,16.6,39
+886,90,Tacos,Fast Food,8.02,86
+887,90,Margherita Pizza,Casual,24.57,93
+888,90,Iced Tea,Drinks,2.57,36
+889,91,Makloub,Fast Food,8.96,49
+890,91,Ice Cream Sundae,Dessert,7.2,72
+891,91,Classic Burger,Fast Food,7.33,55
+892,91,Cheesecake,Dessert,9.59,80
+893,91,Cheese Burger,Fast Food,5.27,81
+894,91,Pepperoni Pizza,Casual,19.83,27
+895,91,Fruit Tart,Dessert,9.88,31
+896,91,Fruit Tart,Dessert,6.1,18
+897,91,Fruit Tart,Dessert,5.5,40
+898,91,Margherita Pizza,Casual,15.24,62
+899,91,Lemonade,Drinks,7.34,99
+900,91,Iced Tea,Drinks,3.4,22
+901,92,Chawarma,Fast Food,14.99,85
+902,92,Ice Cream Sundae,Dessert,5.13,41
+903,92,Iced Tea,Drinks,7.05,42
+904,92,Veggie Burger,Fast Food,11.23,69
+905,92,Veggie Burger,Fast Food,11.31,37
+906,92,Chawarma,Fast Food,10.38,27
+907,92,Classic Burger,Fast Food,14.2,76
+908,92,Margherita Pizza,Casual,27.1,60
+909,92,Veggie Pizza,Casual,25.39,26
+910,92,Fruit Tart,Dessert,9.66,41
+911,92,Veggie Pizza,Casual,28.81,17
+912,92,Smoothie,Drinks,5.45,87
+913,92,Libanais,Fast Food,7.19,66
+914,92,Chicken Burger,Fast Food,,67
+915,93,Libanais,Fast Food,13.13,87
+916,93,Veggie Burger,Fast Food,14.75,51
+917,93,Kebab,Fast Food,11.04,63
+918,93,Ice Cream Sundae,Dessert,6.63,100
+919,93,Fresh Juice,Drinks,4.68,47
+920,93,Margherita Pizza,Casual,18.9,91
+921,93,Chocolate Cake,Dessert,9.61,98
+922,94,Fruit Tart,Dessert,9.93,11
+923,94,Margherita Pizza,Casual,20.9,73
+924,94,Cheesecake,Dessert,,13
+925,94,Veggie Burger,Fast Food,13.64,20
+926,94,Chocolate Cake,Dessert,8.15,16
+927,94,Lemonade,Drinks,,19
+928,94,Ice Cream Sundae,Dessert,6.8,76
+929,94,Chocolate Cake,Dessert,5.07,47
+930,94,Classic Burger,Fast Food,9.12,55
+931,94,Fruit Tart,Dessert,8.96,47
+932,94,Smoothie,Drinks,4.44,46
+933,94,Veggie Pizza,Casual,17.02,66
+934,94,Fresh Juice,Drinks,3.15,15
+935,94,Smoothie,Drinks,2.54,74
+936,94,Chicken Burger,Fast Food,6.07,59
+937,95,Veggie Pizza,Casual,25.13,57
+938,95,Chocolate Cake,Dessert,5.54,12
+939,95,Fresh Juice,Drinks,3.54,90
+940,95,Smoothie,Drinks,6.82,94
+941,95,Iced Tea,Drinks,7.0,22
+942,95,Veggie Burger,Fast Food,6.56,41
+943,95,Tacos,Fast Food,5.58,56
+944,95,Fruit Tart,Dessert,7.55,47
+945,95,Fruit Tart,Dessert,6.41,92
+946,95,Veggie Pizza,Casual,16.26,95
+947,96,Pepperoni Pizza,Casual,26.59,21
+948,96,BBQ Chicken Pizza,Casual,19.08,97
+949,96,Fruit Tart,Dessert,7.98,100
+950,96,BBQ Chicken Pizza,Casual,19.87,83
+951,96,Makloub,Fast Food,7.99,77
+952,96,Chocolate Cake,Dessert,7.87,49
+953,96,Smoothie,Drinks,7.18,42
+954,96,Iced Tea,Drinks,6.77,29
+955,96,Fruit Tart,Dessert,8.22,71
+956,96,BBQ Chicken Pizza,Casual,24.58,71
+957,96,Smoothie,Drinks,4.82,36
+958,96,Fresh Juice,Drinks,3.65,28
+959,96,Chocolate Cake,Dessert,9.28,68
+960,97,Iced Tea,Drinks,5.43,49
+961,97,Lemonade,Drinks,4.6,98
+962,97,Fresh Juice,Drinks,2.49,25
+963,97,Veggie Pizza,Casual,27.58,26
+964,97,Cheesecake,Dessert,7.18,84
+965,97,Fresh Juice,Drinks,4.13,67
+966,98,Classic Burger,Fast Food,13.46,65
+967,98,BBQ Chicken Pizza,Casual,24.92,45
+968,98,Lemonade,Drinks,7.5,24
+969,98,Chocolate Cake,Dessert,7.25,69
+970,98,Chicken Burger,Fast Food,14.96,12
+971,98,Libanais,Fast Food,7.82,89
+972,98,Chocolate Cake,Dessert,8.92,98
+973,98,Fruit Tart,Dessert,5.66,59
+974,98,BBQ Chicken Pizza,Casual,28.6,80
+975,98,Ice Cream Sundae,Dessert,6.68,95
+976,99,Lemonade,Drinks,7.64,96
+977,99,Iced Tea,Drinks,4.03,44
+978,99,Margherita Pizza,Casual,29.74,13
+979,99,Cheesecake,Dessert,8.43,30
+980,99,Lemonade,Drinks,5.75,99
+981,99,BBQ Chicken Pizza,Casual,19.9,74
+982,99,Fresh Juice,Drinks,5.33,44
+983,99,BBQ Chicken Pizza,Casual,15.34,62
+984,99,Fresh Juice,Drinks,3.12,69
+985,99,Smoothie,Drinks,3.03,86
+986,99,Cheesecake,Dessert,5.23,71
+987,99,Fresh Juice,Drinks,3.34,73
+988,99,Smoothie,Drinks,4.95,63
+989,99,Chocolate Cake,Dessert,6.95,97
+990,99,Smoothie,Drinks,,97
+991,100,Veggie Pizza,Casual,20.16,22
+992,100,Fresh Juice,Drinks,5.68,77
+993,100,Tacos,Fast Food,6.42,16
+994,100,Fresh Juice,Drinks,,18
+995,100,Pepperoni Pizza,Casual,26.24,84
+996,100,Chicken Burger,Fast Food,12.71,48
+997,100,Pepperoni Pizza,Casual,21.48,32
+998,100,Ice Cream Sundae,Dessert,5.02,99
+999,100,Smoothie,Drinks,5.68,25
+1000,100,Veggie Pizza,Casual,18.94,41
+1001,100,Cheese Burger,Fast Food,10.53,86
+1002,100,Makloub,Fast Food,8.57,54
+1003,101,Chicken Burger,Fast Food,,34
+1004,101,Margherita Pizza,Casual,24.04,59
+1005,101,Lemonade,Drinks,3.52,37
+1006,101,Cheesecake,Dessert,6.04,71
+1007,101,Ice Cream Sundae,Dessert,7.65,48
+1008,101,Iced Tea,Drinks,4.88,49
+1009,102,Chocolate Cake,Dessert,5.05,32
+1010,102,Lemonade,Drinks,6.1,20
+1011,102,Iced Tea,Drinks,4.41,55
+1012,102,Libanais,Fast Food,6.58,66
+1013,102,Veggie Pizza,Casual,24.82,49
+1014,102,BBQ Chicken Pizza,Casual,29.31,69
+1015,102,Iced Tea,Drinks,7.28,77
+1016,102,Chocolate Cake,Dessert,9.28,65
+1017,102,Iced Tea,Drinks,4.88,73
+1018,102,Fresh Juice,Drinks,2.11,58
+1019,102,BBQ Chicken Pizza,Casual,29.36,58
+1020,102,Cheesecake,Dessert,6.41,50
+1021,102,Iced Tea,Drinks,5.08,28
+1022,102,Makloub,Fast Food,,19
+1023,102,Tacos,Fast Food,10.67,27
+1024,103,Cheesecake,Dessert,6.24,17
+1025,103,BBQ Chicken Pizza,Casual,22.94,22
+1026,103,Fruit Tart,Dessert,6.79,13
+1027,103,Veggie Burger,Fast Food,14.03,94
+1028,103,Classic Burger,Fast Food,12.19,75
+1029,103,Ice Cream Sundae,Dessert,9.22,21
+1030,103,BBQ Chicken Pizza,Casual,15.69,99
+1031,103,Tacos,Fast Food,6.91,67
+1032,103,Fruit Tart,Dessert,9.01,39
+1033,103,Chicken Burger,Fast Food,12.06,99
+1034,103,Iced Tea,Drinks,3.42,86
+1035,103,Fresh Juice,Drinks,7.31,10
+1036,103,Makloub,Fast Food,9.14,19
+1037,103,Pepperoni Pizza,Casual,25.16,43
+1038,104,Chawarma,Fast Food,10.24,52
+1039,104,Fruit Tart,Dessert,5.27,93
+1040,104,Chocolate Cake,Dessert,6.35,53
+1041,104,Makloub,Fast Food,5.83,81
+1042,104,Classic Burger,Fast Food,8.39,20
+1043,105,Margherita Pizza,Casual,23.58,51
+1044,105,Fresh Juice,Drinks,2.91,61
+1045,105,Veggie Pizza,Casual,29.72,73
+1046,105,Lemonade,Drinks,7.08,42
+1047,105,Fruit Tart,Dessert,7.36,11
+1048,105,Cheesecake,Dessert,7.0,43
+1049,105,Chawarma,Fast Food,7.63,98
+1050,105,Fresh Juice,Drinks,6.56,53
+1051,105,Chocolate Cake,Dessert,5.8,73
+1052,105,Cheese Burger,Fast Food,10.58,22
+1053,106,Libanais,Fast Food,5.21,19
+1054,106,Smoothie,Drinks,4.94,81
+1055,106,BBQ Chicken Pizza,Casual,23.23,51
+1056,106,Makloub,Fast Food,7.9,48
+1057,106,Cheesecake,Dessert,9.62,28
+1058,106,Lemonade,Drinks,2.11,78
+1059,106,Libanais,Fast Food,5.65,25
+1060,106,BBQ Chicken Pizza,Casual,24.87,32
+1061,106,Smoothie,Drinks,7.68,66
+1062,106,Makloub,Fast Food,5.63,82
+1063,106,Makloub,Fast Food,14.07,10
+1064,107,Fresh Juice,Drinks,2.06,64
+1065,107,Makloub,Fast Food,8.6,70
+1066,107,Pepperoni Pizza,Casual,24.76,69
+1067,107,Lemonade,Drinks,6.1,50
+1068,107,Chocolate Cake,Dessert,8.92,51
+1069,107,Classic Burger,Fast Food,9.32,20
+1070,107,Smoothie,Drinks,2.67,78
+1071,107,Classic Burger,Fast Food,14.13,80
+1072,107,Cheesecake,Dessert,9.87,56
+1073,107,Lemonade,Drinks,5.75,71
+1074,107,Fresh Juice,Drinks,4.93,98
+1075,107,Chicken Burger,Fast Food,6.77,39
+1076,108,Makloub,Fast Food,14.51,85
+1077,108,Margherita Pizza,Casual,21.79,32
+1078,108,Fruit Tart,Dessert,5.98,69
+1079,108,Chocolate Cake,Dessert,8.39,23
+1080,108,Margherita Pizza,Casual,23.76,44
+1081,108,Fruit Tart,Dessert,8.87,85
+1082,108,Cheese Burger,Fast Food,12.74,53
+1083,108,Iced Tea,Drinks,3.3,22
+1084,108,Kebab,Fast Food,6.49,72
+1085,109,Cheese Burger,Fast Food,13.75,31
+1086,109,Chawarma,Fast Food,9.58,38
+1087,109,Ice Cream Sundae,Dessert,9.42,89
+1088,109,Libanais,Fast Food,9.38,58
+1089,109,Chawarma,Fast Food,6.52,83
+1090,109,Smoothie,Drinks,4.38,34
+1091,109,Fresh Juice,Drinks,4.16,58
+1092,109,Iced Tea,Drinks,6.86,89
+1093,109,Pepperoni Pizza,Casual,19.14,15
+1094,109,Chawarma,Fast Food,5.18,66
+1095,109,Iced Tea,Drinks,7.44,81
+1096,109,Fresh Juice,Drinks,5.21,35
+1097,109,Chocolate Cake,Dessert,9.91,91
+1098,109,Chawarma,Fast Food,10.4,75
+1099,109,Cheesecake,Dessert,8.78,82
+1100,110,Classic Burger,Fast Food,5.62,99
+1101,110,Fruit Tart,Dessert,,78
+1102,110,Fresh Juice,Drinks,5.39,97
+1103,110,BBQ Chicken Pizza,Casual,26.95,46
+1104,110,Fruit Tart,Dessert,9.89,91
+1105,110,Cheesecake,Dessert,7.35,26
+1106,110,Fresh Juice,Drinks,4.73,43
+1107,110,Chocolate Cake,Dessert,5.02,16
+1108,111,Cheese Burger,Fast Food,10.45,51
+1109,111,Smoothie,Drinks,3.26,79
+1110,111,Kebab,Fast Food,9.85,13
+1111,111,Iced Tea,Drinks,5.01,10
+1112,111,Iced Tea,Drinks,3.34,11
+1113,111,Cheesecake,Dessert,6.8,50
+1114,111,Chocolate Cake,Dessert,6.65,42
+1115,111,Fresh Juice,Drinks,4.63,75
+1116,111,Smoothie,Drinks,,56
+1117,111,Veggie Burger,Fast Food,11.22,98
+1118,112,Chocolate Cake,Dessert,6.79,21
+1119,112,Chocolate Cake,Dessert,9.84,10
+1120,112,Smoothie,Drinks,2.25,45
+1121,112,Chocolate Cake,Dessert,7.9,37
+1122,112,Pepperoni Pizza,Casual,25.5,28
+1123,112,Smoothie,Drinks,5.07,88
+1124,113,Chicken Burger,Fast Food,6.78,36
+1125,113,Chawarma,Fast Food,8.67,35
+1126,113,Fresh Juice,Drinks,2.89,25
+1127,113,BBQ Chicken Pizza,Casual,27.68,88
+1128,113,Chicken Burger,Fast Food,10.35,18
+1129,113,BBQ Chicken Pizza,Casual,19.31,34
+1130,113,Smoothie,Drinks,4.57,96
+1131,113,Margherita Pizza,Casual,28.52,50
+1132,114,Ice Cream Sundae,Dessert,7.76,25
+1133,114,Chocolate Cake,Dessert,7.92,23
+1134,114,Fruit Tart,Dessert,8.95,23
+1135,114,Lemonade,Drinks,6.69,40
+1136,114,Chicken Burger,Fast Food,7.81,36
+1137,114,Pepperoni Pizza,Casual,22.88,40
+1138,114,Chawarma,Fast Food,,28
+1139,114,Chocolate Cake,Dessert,8.57,29
+1140,114,Fresh Juice,Drinks,2.15,49
+1141,114,BBQ Chicken Pizza,Casual,21.43,48
+1142,114,Fresh Juice,Drinks,5.91,59
+1143,114,Chicken Burger,Fast Food,9.77,74
+1144,114,Lemonade,Drinks,5.02,55
+1145,114,BBQ Chicken Pizza,Casual,15.87,81
+1146,115,Pepperoni Pizza,Casual,27.82,82
+1147,115,Fresh Juice,Drinks,6.78,84
+1148,115,Veggie Pizza,Casual,15.76,97
+1149,115,Smoothie,Drinks,6.15,60
+1150,115,Margherita Pizza,Casual,,74
+1151,115,Iced Tea,Drinks,5.16,97
+1152,115,Margherita Pizza,Casual,23.17,83
+1153,115,Fresh Juice,Drinks,,61
+1154,115,Chicken Burger,Fast Food,5.47,30
+1155,115,Cheesecake,Dessert,6.33,51
+1156,115,Chawarma,Fast Food,5.75,67
+1157,115,Pepperoni Pizza,Casual,16.51,88
+1158,115,Lemonade,Drinks,,25
+1159,116,Kebab,Fast Food,10.59,10
+1160,116,Ice Cream Sundae,Dessert,7.65,68
+1161,116,Makloub,Fast Food,10.34,34
+1162,116,Fruit Tart,Dessert,6.59,58
+1163,116,Iced Tea,Drinks,3.1,37
+1164,117,Chawarma,Fast Food,12.48,63
+1165,117,Chocolate Cake,Dessert,8.2,83
+1166,117,Smoothie,Drinks,2.15,73
+1167,117,Veggie Burger,Fast Food,6.73,92
+1168,117,Cheesecake,Dessert,5.63,77
+1169,117,Fresh Juice,Drinks,7.37,52
+1170,118,Fresh Juice,Drinks,6.4,35
+1171,118,Makloub,Fast Food,14.73,25
+1172,118,Smoothie,Drinks,2.83,71
+1173,118,Ice Cream Sundae,Dessert,9.18,73
+1174,118,BBQ Chicken Pizza,Casual,27.11,55
+1175,118,Lemonade,Drinks,2.19,49
+1176,118,Tacos,Fast Food,12.15,61
+1177,118,Chocolate Cake,Dessert,6.66,67
+1178,118,Fruit Tart,Dessert,5.69,86
+1179,118,Smoothie,Drinks,4.06,26
+1180,119,Ice Cream Sundae,Dessert,6.67,64
+1181,119,Lemonade,Drinks,3.07,87
+1182,119,Tacos,Fast Food,14.83,63
+1183,119,Smoothie,Drinks,,95
+1184,119,Cheese Burger,Fast Food,12.74,23
+1185,119,Pepperoni Pizza,Casual,28.86,39
+1186,119,Iced Tea,Drinks,5.7,35
+1187,119,Iced Tea,Drinks,5.88,42
+1188,119,Lemonade,Drinks,4.47,65
+1189,119,Classic Burger,Fast Food,9.01,73
+1190,120,Kebab,Fast Food,7.01,93
+1191,120,Makloub,Fast Food,10.8,62
+1192,120,BBQ Chicken Pizza,Casual,20.48,92
+1193,120,Fresh Juice,Drinks,2.46,64
+1194,120,Smoothie,Drinks,5.82,14
+1195,120,Fresh Juice,Drinks,6.7,82
+1196,120,Classic Burger,Fast Food,,23
+1197,120,Lemonade,Drinks,6.0,51
+1198,120,Ice Cream Sundae,Dessert,9.68,41
+1199,121,Cheese Burger,Fast Food,10.19,44
+1200,121,Iced Tea,Drinks,7.22,48
+1201,121,Margherita Pizza,Casual,19.72,26
+1202,121,Fruit Tart,Dessert,9.12,17
+1203,121,Iced Tea,Drinks,4.47,60
+1204,122,Fresh Juice,Drinks,,67
+1205,122,Kebab,Fast Food,9.04,18
+1206,122,Tacos,Fast Food,11.69,42
+1207,122,Chicken Burger,Fast Food,14.5,62
+1208,122,Cheesecake,Dessert,7.29,63
+1209,122,Cheesecake,Dessert,7.88,49
+1210,122,Smoothie,Drinks,4.59,97
+1211,122,Chocolate Cake,Dessert,9.87,46
+1212,122,Lemonade,Drinks,3.58,20
+1213,122,Fresh Juice,Drinks,4.24,83
+1214,123,BBQ Chicken Pizza,Casual,23.99,81
+1215,123,Smoothie,Drinks,6.43,17
+1216,123,Chocolate Cake,Dessert,9.41,30
+1217,123,Pepperoni Pizza,Casual,,22
+1218,123,Smoothie,Drinks,2.12,94
+1219,123,Pepperoni Pizza,Casual,22.43,100
+1220,123,Ice Cream Sundae,Dessert,6.44,39
+1221,123,Veggie Pizza,Casual,21.85,64
+1222,123,Smoothie,Drinks,2.32,70
+1223,123,Iced Tea,Drinks,5.82,60
+1224,124,Iced Tea,Drinks,6.74,75
+1225,124,Veggie Pizza,Casual,26.93,62
+1226,124,Fresh Juice,Drinks,,86
+1227,124,Smoothie,Drinks,3.04,75
+1228,124,Pepperoni Pizza,Casual,24.54,26
+1229,124,Chicken Burger,Fast Food,9.24,74
+1230,124,Fruit Tart,Dessert,5.25,33
+1231,124,Chocolate Cake,Dessert,,92
+1232,124,Fruit Tart,Dessert,7.84,56
+1233,125,Cheesecake,Dessert,9.94,58
+1234,125,Chocolate Cake,Dessert,9.97,38
+1235,125,Cheesecake,Dessert,6.38,69
+1236,125,Kebab,Fast Food,9.14,93
+1237,125,Margherita Pizza,Casual,18.59,52
+1238,125,Cheesecake,Dessert,7.25,93
+1239,125,Ice Cream Sundae,Dessert,8.71,36
+1240,125,Chicken Burger,Fast Food,5.73,22
+1241,125,Chicken Burger,Fast Food,11.37,22
+1242,125,Libanais,Fast Food,12.68,80
+1243,125,BBQ Chicken Pizza,Casual,21.84,72
+1244,125,Libanais,Fast Food,9.44,89
+1245,125,Chocolate Cake,Dessert,9.66,59
+1246,126,Pepperoni Pizza,Casual,17.69,42
+1247,126,Pepperoni Pizza,Casual,21.8,10
+1248,126,Fresh Juice,Drinks,4.95,71
+1249,126,BBQ Chicken Pizza,Casual,22.76,73
+1250,126,Cheesecake,Dessert,8.26,89
+1251,126,Iced Tea,Drinks,6.83,76
+1252,126,Ice Cream Sundae,Dessert,5.54,96
+1253,126,Veggie Pizza,Casual,25.77,82
+1254,126,Pepperoni Pizza,Casual,17.2,87
+1255,126,Cheese Burger,Fast Food,14.18,23
+1256,126,Ice Cream Sundae,Dessert,9.64,67
+1257,126,Fresh Juice,Drinks,3.99,38
+1258,126,Pepperoni Pizza,Casual,24.71,83
+1259,126,Margherita Pizza,Casual,18.2,48
+1260,126,Smoothie,Drinks,7.28,88
+1261,127,Tacos,Fast Food,11.3,28
+1262,127,Classic Burger,Fast Food,12.86,31
+1263,127,Lemonade,Drinks,5.66,82
+1264,127,Fruit Tart,Dessert,5.02,25
+1265,127,Veggie Pizza,Casual,28.46,16
+1266,127,Iced Tea,Drinks,6.2,52
+1267,127,BBQ Chicken Pizza,Casual,20.75,86
+1268,127,Pepperoni Pizza,Casual,22.01,83
+1269,127,BBQ Chicken Pizza,Casual,27.64,59
+1270,127,Pepperoni Pizza,Casual,22.73,88
+1271,127,Smoothie,Drinks,2.46,54
+1272,128,Cheesecake,Dessert,5.67,94
+1273,128,Tacos,Fast Food,11.03,22
+1274,128,Ice Cream Sundae,Dessert,8.04,24
+1275,128,Smoothie,Drinks,6.07,93
+1276,128,Iced Tea,Drinks,6.01,80
+1277,128,Chocolate Cake,Dessert,9.74,28
+1278,128,Lemonade,Drinks,2.45,55
+1279,129,BBQ Chicken Pizza,Casual,15.08,66
+1280,129,Libanais,Fast Food,13.96,29
+1281,129,Chocolate Cake,Dessert,5.59,13
+1282,129,Margherita Pizza,Casual,21.52,26
+1283,129,Tacos,Fast Food,6.05,45
+1284,129,Fruit Tart,Dessert,9.56,89
+1285,129,Lemonade,Drinks,6.12,11
+1286,129,Libanais,Fast Food,7.7,44
+1287,129,Cheese Burger,Fast Food,,33
+1288,129,Smoothie,Drinks,4.27,48
+1289,129,Smoothie,Drinks,5.85,60
+1290,129,Fruit Tart,Dessert,8.63,85
+1291,130,Lemonade,Drinks,2.5,17
+1292,130,Chocolate Cake,Dessert,6.62,12
+1293,130,Pepperoni Pizza,Casual,24.18,48
+1294,130,Iced Tea,Drinks,6.22,91
+1295,130,Chawarma,Fast Food,13.38,52
+1296,130,BBQ Chicken Pizza,Casual,27.53,11
+1297,130,Cheesecake,Dessert,9.37,31
+1298,130,Tacos,Fast Food,5.7,63
+1299,130,Pepperoni Pizza,Casual,23.63,93
+1300,130,Fresh Juice,Drinks,2.34,24
+1301,130,Chawarma,Fast Food,8.97,16
+1302,130,BBQ Chicken Pizza,Casual,21.89,52
+1303,130,Makloub,Fast Food,9.6,83
+1304,130,Lemonade,Drinks,6.05,23
+1305,130,Fruit Tart,Dessert,7.84,89
+1306,131,Kebab,Fast Food,11.16,18
+1307,131,Pepperoni Pizza,Casual,28.95,38
+1308,131,Kebab,Fast Food,9.9,76
+1309,131,Fruit Tart,Dessert,7.82,75
+1310,131,Veggie Pizza,Casual,21.83,89
+1311,131,Lemonade,Drinks,4.58,32
+1312,131,Smoothie,Drinks,3.12,99
+1313,131,Margherita Pizza,Casual,29.18,82
+1314,131,Fresh Juice,Drinks,3.54,52
+1315,131,Chocolate Cake,Dessert,9.97,37
+1316,131,Lemonade,Drinks,6.36,21
+1317,132,Fruit Tart,Dessert,8.66,18
+1318,132,Chocolate Cake,Dessert,9.53,33
+1319,132,Fruit Tart,Dessert,8.05,25
+1320,132,BBQ Chicken Pizza,Casual,26.88,17
+1321,132,Cheesecake,Dessert,8.91,94
+1322,132,Libanais,Fast Food,9.08,40
+1323,133,Veggie Burger,Fast Food,11.54,88
+1324,133,Libanais,Fast Food,12.27,100
+1325,133,BBQ Chicken Pizza,Casual,27.05,13
+1326,133,Fruit Tart,Dessert,6.52,49
+1327,133,Ice Cream Sundae,Dessert,6.74,79
+1328,133,Libanais,Fast Food,12.61,88
+1329,133,Cheesecake,Dessert,7.82,21
+1330,133,Chicken Burger,Fast Food,13.42,86
+1331,133,Classic Burger,Fast Food,13.44,64
+1332,133,Chawarma,Fast Food,10.23,47
+1333,133,Chocolate Cake,Dessert,8.19,59
+1334,133,Cheese Burger,Fast Food,9.67,29
+1335,134,Cheesecake,Dessert,7.05,70
+1336,134,Kebab,Fast Food,8.42,76
+1337,134,Cheesecake,Dessert,8.39,42
+1338,134,Lemonade,Drinks,5.54,99
+1339,134,Fruit Tart,Dessert,9.99,14
+1340,134,Margherita Pizza,Casual,20.48,76
+1341,134,Fresh Juice,Drinks,5.54,87
+1342,134,Iced Tea,Drinks,6.12,88
+1343,134,Fruit Tart,Dessert,8.23,22
+1344,134,Ice Cream Sundae,Dessert,9.66,33
+1345,134,Chocolate Cake,Dessert,5.19,11
+1346,134,BBQ Chicken Pizza,Casual,18.94,89
+1347,134,Pepperoni Pizza,Casual,26.28,99
+1348,134,Fresh Juice,Drinks,5.46,96
+1349,135,Iced Tea,Drinks,5.95,56
+1350,135,Ice Cream Sundae,Dessert,6.39,78
+1351,135,Margherita Pizza,Casual,24.5,25
+1352,135,Libanais,Fast Food,8.39,61
+1353,135,Chocolate Cake,Dessert,6.85,23
+1354,135,Veggie Pizza,Casual,27.09,41
+1355,135,Pepperoni Pizza,Casual,15.21,37
+1356,136,Iced Tea,Drinks,3.92,31
+1357,136,Cheesecake,Dessert,8.59,28
+1358,136,Cheesecake,Dessert,5.72,36
+1359,136,Fruit Tart,Dessert,9.43,51
+1360,136,Iced Tea,Drinks,4.94,38
+1361,136,Chocolate Cake,Dessert,,100
+1362,136,Ice Cream Sundae,Dessert,8.6,15
+1363,136,Cheesecake,Dessert,6.46,70
+1364,136,BBQ Chicken Pizza,Casual,26.02,76
+1365,136,Iced Tea,Drinks,7.2,67
+1366,136,Chawarma,Fast Food,6.57,91
+1367,136,Fruit Tart,Dessert,6.9,77
+1368,136,Libanais,Fast Food,6.33,96
+1369,136,BBQ Chicken Pizza,Casual,18.04,100
+1370,137,Chawarma,Fast Food,8.73,12
+1371,137,Cheese Burger,Fast Food,13.5,91
+1372,137,Fresh Juice,Drinks,3.29,48
+1373,137,Makloub,Fast Food,9.44,53
+1374,137,Lemonade,Drinks,4.93,40
+1375,137,Lemonade,Drinks,,13
+1376,137,Cheesecake,Dessert,7.7,84
+1377,137,Chicken Burger,Fast Food,11.55,38
+1378,137,Smoothie,Drinks,6.49,34
+1379,137,Lemonade,Drinks,3.73,24
+1380,137,Veggie Pizza,Casual,17.32,31
+1381,137,Margherita Pizza,Casual,28.15,36
+1382,137,Fruit Tart,Dessert,8.38,26
+1383,137,Fresh Juice,Drinks,2.34,19
+1384,137,Fresh Juice,Drinks,4.6,85
+1385,138,Veggie Pizza,Casual,15.55,59
+1386,138,Pepperoni Pizza,Casual,16.06,28
+1387,138,Fresh Juice,Drinks,3.11,74
+1388,138,Fruit Tart,Dessert,5.53,17
+1389,138,BBQ Chicken Pizza,Casual,24.51,56
+1390,138,Smoothie,Drinks,5.9,63
+1391,138,Veggie Pizza,Casual,25.3,59
+1392,138,Chocolate Cake,Dessert,6.6,80
+1393,138,Kebab,Fast Food,12.6,76
+1394,138,Fresh Juice,Drinks,2.55,10
+1395,138,Fresh Juice,Drinks,6.47,36
+1396,138,Fresh Juice,Drinks,7.84,75
+1397,138,Kebab,Fast Food,14.82,94
+1398,138,Ice Cream Sundae,Dessert,6.36,72
+1399,138,Margherita Pizza,Casual,17.61,100
+1400,139,Lemonade,Drinks,5.35,38
+1401,139,Cheese Burger,Fast Food,10.04,48
+1402,139,Veggie Pizza,Casual,15.7,85
+1403,139,Lemonade,Drinks,6.63,75
+1404,139,Cheesecake,Dessert,5.61,14
+1405,139,Kebab,Fast Food,9.73,69
+1406,139,Margherita Pizza,Casual,25.39,39
+1407,139,Cheese Burger,Fast Food,8.86,89
+1408,139,Smoothie,Drinks,3.3,26
+1409,139,Margherita Pizza,Casual,22.34,24
+1410,139,Fresh Juice,Drinks,6.22,27
+1411,139,Smoothie,Drinks,5.31,20
+1412,140,Cheesecake,Dessert,,37
+1413,140,Makloub,Fast Food,8.44,68
+1414,140,BBQ Chicken Pizza,Casual,28.32,23
+1415,140,Libanais,Fast Food,14.34,12
+1416,140,Tacos,Fast Food,13.39,51
+1417,140,Veggie Burger,Fast Food,11.37,29
+1418,140,Margherita Pizza,Casual,24.94,14
+1419,140,Margherita Pizza,Casual,24.79,81
+1420,140,Makloub,Fast Food,,45
+1421,140,Lemonade,Drinks,6.23,61
+1422,140,Tacos,Fast Food,13.94,30
+1423,140,Makloub,Fast Food,11.96,83
+1424,140,Chawarma,Fast Food,13.96,98
+1425,141,Cheesecake,Dessert,6.03,13
+1426,141,Chawarma,Fast Food,9.21,51
+1427,141,Classic Burger,Fast Food,13.34,44
+1428,141,Fresh Juice,Drinks,2.21,56
+1429,141,Libanais,Fast Food,7.21,26
+1430,141,Chawarma,Fast Food,5.55,85
+1431,141,Veggie Pizza,Casual,22.17,21
+1432,141,Veggie Pizza,Casual,25.2,63
+1433,141,Cheesecake,Dessert,5.25,59
+1434,141,Veggie Pizza,Casual,18.01,87
+1435,141,Libanais,Fast Food,5.19,11
+1436,141,Kebab,Fast Food,8.92,97
+1437,141,Lemonade,Drinks,2.56,49
+1438,141,Iced Tea,Drinks,3.61,56
+1439,141,Classic Burger,Fast Food,7.56,91
+1440,142,Ice Cream Sundae,Dessert,8.71,92
+1441,142,Margherita Pizza,Casual,16.58,92
+1442,142,Chicken Burger,Fast Food,5.02,58
+1443,142,Chocolate Cake,Dessert,7.74,87
+1444,142,Chawarma,Fast Food,13.43,24
+1445,142,Smoothie,Drinks,,53
+1446,142,Chicken Burger,Fast Food,14.04,70
+1447,142,Chocolate Cake,Dessert,5.47,60
+1448,142,Pepperoni Pizza,Casual,28.61,90
+1449,142,Cheesecake,Dessert,8.37,54
+1450,143,Iced Tea,Drinks,,10
+1451,143,Fruit Tart,Dessert,5.15,39
+1452,143,Smoothie,Drinks,4.93,47
+1453,143,Makloub,Fast Food,6.43,100
+1454,143,Fresh Juice,Drinks,5.49,66
+1455,143,Ice Cream Sundae,Dessert,9.32,56
+1456,143,Ice Cream Sundae,Dessert,,81
+1457,143,Classic Burger,Fast Food,11.17,12
+1458,143,Smoothie,Drinks,3.17,50
+1459,143,Smoothie,Drinks,4.69,27
+1460,143,Cheesecake,Dessert,5.46,88
+1461,144,Veggie Pizza,Casual,24.67,24
+1462,144,Fruit Tart,Dessert,7.21,29
+1463,144,BBQ Chicken Pizza,Casual,,47
+1464,144,Tacos,Fast Food,9.28,31
+1465,144,Veggie Pizza,Casual,19.85,35
+1466,145,Veggie Burger,Fast Food,5.93,63
+1467,145,Pepperoni Pizza,Casual,28.61,54
+1468,145,Chocolate Cake,Dessert,6.33,14
+1469,145,Chawarma,Fast Food,14.78,88
+1470,145,Libanais,Fast Food,7.68,31
+1471,145,Tacos,Fast Food,7.04,88
+1472,145,Fresh Juice,Drinks,,79
+1473,145,BBQ Chicken Pizza,Casual,29.63,65
+1474,145,Chicken Burger,Fast Food,12.81,58
+1475,145,Fruit Tart,Dessert,7.04,71
+1476,145,Smoothie,Drinks,6.9,58
+1477,145,Veggie Pizza,Casual,23.33,55
+1478,145,Cheese Burger,Fast Food,14.99,49
+1479,145,Pepperoni Pizza,Casual,28.24,84
+1480,145,BBQ Chicken Pizza,Casual,17.16,54
+1481,146,Chocolate Cake,Dessert,7.64,29
+1482,146,Ice Cream Sundae,Dessert,6.23,96
+1483,146,Smoothie,Drinks,2.71,25
+1484,146,Libanais,Fast Food,13.56,87
+1485,146,Libanais,Fast Food,14.71,72
+1486,146,Margherita Pizza,Casual,23.12,16
+1487,146,Veggie Pizza,Casual,,65
+1488,146,Lemonade,Drinks,5.55,99
+1489,146,Cheese Burger,Fast Food,8.28,72
+1490,146,Tacos,Fast Food,,55
+1491,146,Smoothie,Drinks,6.56,54
+1492,146,Chocolate Cake,Dessert,7.96,24
+1493,146,Cheesecake,Dessert,8.99,70
+1494,146,Veggie Pizza,Casual,26.58,91
+1495,146,Ice Cream Sundae,Dessert,7.12,50
+1496,147,Iced Tea,Drinks,3.08,62
+1497,147,Pepperoni Pizza,Casual,18.28,43
+1498,147,BBQ Chicken Pizza,Casual,17.86,91
+1499,147,Classic Burger,Fast Food,9.05,51
+1500,147,Makloub,Fast Food,7.34,34
+1501,147,Tacos,Fast Food,11.52,39
+1502,147,BBQ Chicken Pizza,Casual,25.43,20
+1503,147,Fresh Juice,Drinks,6.86,90
+1504,147,Cheese Burger,Fast Food,5.07,97
+1505,147,Cheesecake,Dessert,7.14,40
+1506,147,Smoothie,Drinks,3.29,41
+1507,147,Cheese Burger,Fast Food,5.75,43
+1508,147,Veggie Pizza,Casual,20.17,96
+1509,147,Fresh Juice,Drinks,6.5,28
+1510,148,Cheese Burger,Fast Food,14.99,69
+1511,148,Iced Tea,Drinks,,36
+1512,148,Fruit Tart,Dessert,9.43,39
+1513,148,Ice Cream Sundae,Dessert,9.12,51
+1514,148,Fruit Tart,Dessert,7.26,34
+1515,148,Cheese Burger,Fast Food,10.12,51
+1516,148,BBQ Chicken Pizza,Casual,22.1,12
+1517,148,Kebab,Fast Food,10.23,87
+1518,148,Cheesecake,Dessert,5.23,48
+1519,148,Fruit Tart,Dessert,9.98,23
+1520,148,Smoothie,Drinks,2.06,77
+1521,149,Chocolate Cake,Dessert,8.1,95
+1522,149,Veggie Pizza,Casual,21.03,33
+1523,149,BBQ Chicken Pizza,Casual,18.08,98
+1524,149,Fresh Juice,Drinks,6.87,68
+1525,149,BBQ Chicken Pizza,Casual,16.17,82
+1526,150,Kebab,Fast Food,9.51,27
+1527,150,Pepperoni Pizza,Casual,29.93,49
+1528,150,Chocolate Cake,Dessert,5.02,92
+1529,150,Veggie Pizza,Casual,24.82,61
+1530,150,Fruit Tart,Dessert,7.9,71
+1531,150,BBQ Chicken Pizza,Casual,16.44,39
+1532,150,Iced Tea,Drinks,2.97,72
+1533,150,Kebab,Fast Food,8.45,36
+1534,151,Veggie Pizza,Casual,23.02,14
+1535,151,Margherita Pizza,Casual,22.3,62
+1536,151,Veggie Burger,Fast Food,8.11,70
+1537,151,Lemonade,Drinks,,75
+1538,151,Smoothie,Drinks,2.09,30
+1539,151,Smoothie,Drinks,2.43,53
+1540,151,Veggie Burger,Fast Food,9.17,78
+1541,151,Chicken Burger,Fast Food,11.69,66
+1542,151,Veggie Pizza,Casual,23.51,17
+1543,151,Pepperoni Pizza,Casual,24.69,76
+1544,151,Makloub,Fast Food,8.48,85
+1545,151,Cheesecake,Dessert,7.11,76
+1546,151,Pepperoni Pizza,Casual,26.64,15
+1547,151,Iced Tea,Drinks,6.89,63
+1548,151,Cheese Burger,Fast Food,13.0,96
+1549,152,Margherita Pizza,Casual,20.83,80
+1550,152,Cheese Burger,Fast Food,7.79,72
+1551,152,Cheese Burger,Fast Food,14.84,29
+1552,152,Makloub,Fast Food,6.05,30
+1553,152,Kebab,Fast Food,9.2,46
+1554,152,Smoothie,Drinks,4.42,37
+1555,152,Lemonade,Drinks,4.88,38
+1556,153,Lemonade,Drinks,2.15,63
+1557,153,Veggie Pizza,Casual,25.59,62
+1558,153,Chawarma,Fast Food,9.75,19
+1559,153,Smoothie,Drinks,7.75,63
+1560,153,Iced Tea,Drinks,4.85,57
+1561,153,Fresh Juice,Drinks,5.04,55
+1562,153,Veggie Pizza,Casual,22.22,73
+1563,154,Cheesecake,Dessert,6.38,53
+1564,154,BBQ Chicken Pizza,Casual,29.59,75
+1565,154,BBQ Chicken Pizza,Casual,23.12,82
+1566,154,Pepperoni Pizza,Casual,28.3,58
+1567,154,Makloub,Fast Food,7.67,10
+1568,154,Veggie Pizza,Casual,20.85,91
+1569,154,Chicken Burger,Fast Food,9.79,76
+1570,154,Veggie Pizza,Casual,23.82,79
+1571,154,Chawarma,Fast Food,12.23,39
+1572,154,Lemonade,Drinks,2.97,47
+1573,154,Veggie Burger,Fast Food,10.08,13
+1574,154,Cheesecake,Dessert,5.45,30
+1575,154,Fresh Juice,Drinks,4.25,50
+1576,155,Kebab,Fast Food,13.53,88
+1577,155,Fresh Juice,Drinks,7.09,74
+1578,155,Pepperoni Pizza,Casual,18.52,89
+1579,155,Chocolate Cake,Dessert,7.35,56
+1580,155,Cheesecake,Dessert,5.21,61
+1581,155,Fruit Tart,Dessert,6.6,48
+1582,156,Iced Tea,Drinks,5.33,11
+1583,156,Fresh Juice,Drinks,4.37,53
+1584,156,Fruit Tart,Dessert,8.59,46
+1585,156,Classic Burger,Fast Food,5.07,13
+1586,156,Lemonade,Drinks,4.45,96
+1587,156,Libanais,Fast Food,5.79,58
+1588,156,Fresh Juice,Drinks,2.99,47
+1589,156,Fruit Tart,Dessert,8.51,21
+1590,156,Makloub,Fast Food,12.59,59
+1591,156,Smoothie,Drinks,7.08,56
+1592,156,Fruit Tart,Dessert,6.92,34
+1593,156,Cheesecake,Dessert,6.86,40
+1594,156,Veggie Pizza,Casual,23.83,65
+1595,157,Lemonade,Drinks,5.28,97
+1596,157,Kebab,Fast Food,8.2,81
+1597,157,Makloub,Fast Food,11.39,34
+1598,157,Iced Tea,Drinks,5.16,43
+1599,157,Chocolate Cake,Dessert,8.72,25
+1600,157,BBQ Chicken Pizza,Casual,27.99,30
+1601,157,Margherita Pizza,Casual,25.32,47
+1602,157,Margherita Pizza,Casual,16.27,35
+1603,157,Ice Cream Sundae,Dessert,7.2,88
+1604,157,Classic Burger,Fast Food,8.43,59
+1605,157,Iced Tea,Drinks,2.34,92
+1606,157,BBQ Chicken Pizza,Casual,27.95,35
+1607,157,Fresh Juice,Drinks,4.22,16
+1608,157,Chocolate Cake,Dessert,7.43,71
+1609,158,Smoothie,Drinks,5.94,92
+1610,158,Pepperoni Pizza,Casual,16.99,86
+1611,158,Lemonade,Drinks,2.48,63
+1612,158,Smoothie,Drinks,4.71,25
+1613,158,Margherita Pizza,Casual,19.59,43
+1614,158,Chicken Burger,Fast Food,11.25,98
+1615,158,Ice Cream Sundae,Dessert,9.63,77
+1616,158,BBQ Chicken Pizza,Casual,21.7,83
+1617,158,Chocolate Cake,Dessert,6.94,72
+1618,158,Fruit Tart,Dessert,8.02,84
+1619,158,Fresh Juice,Drinks,4.87,64
+1620,159,Makloub,Fast Food,11.93,51
+1621,159,Makloub,Fast Food,11.87,47
+1622,159,Fruit Tart,Dessert,7.29,67
+1623,159,Veggie Pizza,Casual,20.15,29
+1624,159,Lemonade,Drinks,5.61,42
+1625,159,Iced Tea,Drinks,3.66,17
+1626,159,Smoothie,Drinks,7.23,41
+1627,159,Makloub,Fast Food,5.07,67
+1628,160,Margherita Pizza,Casual,21.21,86
+1629,160,Classic Burger,Fast Food,11.47,78
+1630,160,Lemonade,Drinks,7.34,70
+1631,160,Chocolate Cake,Dessert,7.88,96
+1632,160,Pepperoni Pizza,Casual,20.91,67
+1633,160,Smoothie,Drinks,6.86,41
+1634,160,Tacos,Fast Food,5.67,61
+1635,160,BBQ Chicken Pizza,Casual,21.59,77
+1636,160,Fresh Juice,Drinks,3.39,38
+1637,160,Iced Tea,Drinks,2.72,11
+1638,160,Pepperoni Pizza,Casual,21.15,48
+1639,160,Smoothie,Drinks,,42
+1640,160,Lemonade,Drinks,6.95,82
+1641,161,Fresh Juice,Drinks,3.35,48
+1642,161,Cheesecake,Dessert,9.83,93
+1643,161,Ice Cream Sundae,Dessert,5.54,69
+1644,161,Iced Tea,Drinks,,79
+1645,161,Cheese Burger,Fast Food,13.64,88
+1646,161,Veggie Pizza,Casual,17.45,11
+1647,161,Chicken Burger,Fast Food,8.55,59
+1648,161,Chocolate Cake,Dessert,6.77,77
+1649,161,Lemonade,Drinks,2.23,20
+1650,161,Pepperoni Pizza,Casual,26.78,50
+1651,161,Veggie Pizza,Casual,,44
+1652,161,Libanais,Fast Food,8.27,98
+1653,162,BBQ Chicken Pizza,Casual,21.26,21
+1654,162,BBQ Chicken Pizza,Casual,28.76,83
+1655,162,Pepperoni Pizza,Casual,27.43,65
+1656,162,Cheesecake,Dessert,,80
+1657,162,Ice Cream Sundae,Dessert,7.24,58
+1658,162,Chawarma,Fast Food,12.17,32
+1659,162,Chocolate Cake,Dessert,6.41,11
+1660,162,Margherita Pizza,Casual,15.94,93
+1661,162,Iced Tea,Drinks,5.83,57
+1662,163,Veggie Pizza,Casual,21.42,99
+1663,163,Ice Cream Sundae,Dessert,5.32,94
+1664,163,Veggie Burger,Fast Food,10.42,62
+1665,163,Iced Tea,Drinks,3.82,16
+1666,163,Kebab,Fast Food,12.05,75
+1667,163,Makloub,Fast Food,13.27,37
+1668,163,Ice Cream Sundae,Dessert,6.71,65
+1669,164,Fresh Juice,Drinks,7.94,20
+1670,164,Veggie Pizza,Casual,21.82,52
+1671,164,Veggie Burger,Fast Food,7.57,15
+1672,164,Smoothie,Drinks,5.02,50
+1673,164,Libanais,Fast Food,10.36,27
+1674,164,Chocolate Cake,Dessert,8.36,50
+1675,164,Fruit Tart,Dessert,5.39,17
+1676,165,Chawarma,Fast Food,11.24,54
+1677,165,Iced Tea,Drinks,2.93,40
+1678,165,Veggie Burger,Fast Food,10.35,58
+1679,165,Cheesecake,Dessert,7.98,42
+1680,165,Cheesecake,Dessert,8.44,42
+1681,165,Classic Burger,Fast Food,6.65,36
+1682,165,Libanais,Fast Food,5.48,70
+1683,165,Iced Tea,Drinks,,53
+1684,165,Margherita Pizza,Casual,18.6,44
+1685,165,Pepperoni Pizza,Casual,17.39,59
+1686,165,Margherita Pizza,Casual,25.22,100
+1687,166,Fruit Tart,Dessert,9.44,48
+1688,166,Smoothie,Drinks,4.07,66
+1689,166,Pepperoni Pizza,Casual,24.04,47
+1690,166,Margherita Pizza,Casual,,97
+1691,166,Chocolate Cake,Dessert,7.52,55
+1692,166,Lemonade,Drinks,3.12,77
+1693,166,Libanais,Fast Food,12.26,75
+1694,166,BBQ Chicken Pizza,Casual,15.18,19
+1695,166,Smoothie,Drinks,5.53,97
+1696,166,Fruit Tart,Dessert,8.18,12
+1697,167,Ice Cream Sundae,Dessert,5.79,50
+1698,167,Lemonade,Drinks,,36
+1699,167,BBQ Chicken Pizza,Casual,23.01,91
+1700,167,Smoothie,Drinks,6.94,16
+1701,167,Chicken Burger,Fast Food,,53
+1702,167,Margherita Pizza,Casual,26.9,84
+1703,167,Tacos,Fast Food,7.08,12
+1704,167,Smoothie,Drinks,3.51,73
+1705,167,Pepperoni Pizza,Casual,,48
+1706,167,Ice Cream Sundae,Dessert,,71
+1707,167,Margherita Pizza,Casual,16.21,79
+1708,167,Cheese Burger,Fast Food,5.58,35
+1709,168,Iced Tea,Drinks,7.82,19
+1710,168,Smoothie,Drinks,7.36,20
+1711,168,Lemonade,Drinks,3.65,18
+1712,168,Tacos,Fast Food,7.2,33
+1713,168,Smoothie,Drinks,2.81,99
+1714,168,Kebab,Fast Food,14.54,34
+1715,168,Classic Burger,Fast Food,8.86,91
+1716,168,Pepperoni Pizza,Casual,17.38,82
+1717,168,Classic Burger,Fast Food,9.92,18
+1718,168,Lemonade,Drinks,3.61,14
+1719,168,Fresh Juice,Drinks,2.89,94
+1720,169,Chawarma,Fast Food,7.12,48
+1721,169,Smoothie,Drinks,4.85,14
+1722,169,Fresh Juice,Drinks,2.37,68
+1723,169,BBQ Chicken Pizza,Casual,22.93,89
+1724,169,Margherita Pizza,Casual,23.15,15
+1725,169,Tacos,Fast Food,11.08,74
+1726,169,Fruit Tart,Dessert,9.72,78
+1727,169,Cheese Burger,Fast Food,9.56,54
+1728,170,Fruit Tart,Dessert,8.39,52
+1729,170,Fruit Tart,Dessert,7.25,12
+1730,170,Pepperoni Pizza,Casual,21.92,50
+1731,170,Fruit Tart,Dessert,9.89,12
+1732,170,BBQ Chicken Pizza,Casual,23.1,61
+1733,170,Cheesecake,Dessert,5.21,10
+1734,170,Ice Cream Sundae,Dessert,5.97,37
+1735,170,Makloub,Fast Food,10.45,13
+1736,170,Fresh Juice,Drinks,,29
+1737,170,Lemonade,Drinks,3.57,54
+1738,170,BBQ Chicken Pizza,Casual,26.85,21
+1739,171,Pepperoni Pizza,Casual,16.56,28
+1740,171,Margherita Pizza,Casual,27.14,74
+1741,171,Margherita Pizza,Casual,29.37,59
+1742,171,Pepperoni Pizza,Casual,23.16,16
+1743,171,Chocolate Cake,Dessert,8.46,64
+1744,171,Cheese Burger,Fast Food,8.67,12
+1745,171,Ice Cream Sundae,Dessert,6.16,60
+1746,171,Fruit Tart,Dessert,5.63,22
+1747,171,BBQ Chicken Pizza,Casual,21.07,23
+1748,171,Kebab,Fast Food,14.65,94
+1749,171,Lemonade,Drinks,7.85,57
+1750,172,Libanais,Fast Food,9.18,35
+1751,172,Fresh Juice,Drinks,4.71,10
+1752,172,Lemonade,Drinks,4.6,63
+1753,172,Chocolate Cake,Dessert,9.43,54
+1754,172,Fruit Tart,Dessert,6.68,91
+1755,172,Smoothie,Drinks,4.06,50
+1756,172,Lemonade,Drinks,5.23,82
+1757,173,Lemonade,Drinks,3.33,83
+1758,173,Chocolate Cake,Dessert,9.5,14
+1759,173,Pepperoni Pizza,Casual,24.76,94
+1760,173,Fresh Juice,Drinks,6.06,12
+1761,173,Chocolate Cake,Dessert,8.98,19
+1762,173,Chocolate Cake,Dessert,9.73,95
+1763,173,Pepperoni Pizza,Casual,24.76,72
+1764,173,Iced Tea,Drinks,5.55,19
+1765,173,Libanais,Fast Food,11.42,100
+1766,173,Cheesecake,Dessert,8.89,47
+1767,173,Chawarma,Fast Food,12.57,97
+1768,173,Chawarma,Fast Food,12.35,75
+1769,173,Libanais,Fast Food,12.29,60
+1770,173,Veggie Burger,Fast Food,,83
+1771,173,Libanais,Fast Food,11.39,37
+1772,174,Veggie Pizza,Casual,18.07,41
+1773,174,Fruit Tart,Dessert,8.46,76
+1774,174,Lemonade,Drinks,7.51,41
+1775,174,Fruit Tart,Dessert,9.51,43
+1776,174,Chawarma,Fast Food,6.44,78
+1777,174,Smoothie,Drinks,5.7,46
+1778,174,Smoothie,Drinks,5.84,27
+1779,174,Iced Tea,Drinks,5.13,13
+1780,174,Veggie Pizza,Casual,25.08,81
+1781,175,Kebab,Fast Food,7.65,29
+1782,175,Iced Tea,Drinks,7.43,38
+1783,175,Chicken Burger,Fast Food,5.96,95
+1784,175,Lemonade,Drinks,3.34,10
+1785,175,Chocolate Cake,Dessert,9.87,42
+1786,175,Fruit Tart,Dessert,8.58,26
+1787,175,Fruit Tart,Dessert,7.01,52
+1788,175,Chawarma,Fast Food,5.67,57
+1789,175,Tacos,Fast Food,8.72,94
+1790,175,Veggie Pizza,Casual,24.64,13
+1791,175,Chocolate Cake,Dessert,6.77,66
+1792,175,Ice Cream Sundae,Dessert,9.77,72
+1793,175,Lemonade,Drinks,4.76,48
+1794,175,Veggie Burger,Fast Food,7.5,32
+1795,176,Fresh Juice,Drinks,6.64,35
+1796,176,Ice Cream Sundae,Dessert,8.19,26
+1797,176,Ice Cream Sundae,Dessert,9.13,79
+1798,176,Chawarma,Fast Food,11.63,56
+1799,176,Veggie Pizza,Casual,21.36,55
+1800,176,Fruit Tart,Dessert,6.31,23
+1801,176,Classic Burger,Fast Food,7.93,69
+1802,176,Margherita Pizza,Casual,27.42,74
+1803,176,Veggie Pizza,Casual,19.23,100
+1804,176,Cheese Burger,Fast Food,9.75,27
+1805,176,Lemonade,Drinks,7.49,59
+1806,176,Cheesecake,Dessert,8.01,85
+1807,177,Smoothie,Drinks,5.42,42
+1808,177,Kebab,Fast Food,,34
+1809,177,Kebab,Fast Food,6.6,82
+1810,177,Chawarma,Fast Food,5.97,89
+1811,177,Smoothie,Drinks,3.77,29
+1812,177,BBQ Chicken Pizza,Casual,19.83,63
+1813,178,Fruit Tart,Dessert,7.62,31
+1814,178,BBQ Chicken Pizza,Casual,17.68,62
+1815,178,Classic Burger,Fast Food,8.65,79
+1816,178,Cheese Burger,Fast Food,12.68,75
+1817,178,Classic Burger,Fast Food,5.0,52
+1818,178,BBQ Chicken Pizza,Casual,23.19,60
+1819,178,Iced Tea,Drinks,5.93,90
+1820,178,Margherita Pizza,Casual,29.98,11
+1821,178,Fresh Juice,Drinks,7.15,18
+1822,178,Iced Tea,Drinks,3.23,100
+1823,178,Lemonade,Drinks,4.35,24
+1824,178,Ice Cream Sundae,Dessert,9.26,99
+1825,178,Kebab,Fast Food,5.03,96
+1826,178,BBQ Chicken Pizza,Casual,24.29,31
+1827,178,Cheesecake,Dessert,7.04,52
+1828,179,Veggie Pizza,Casual,25.55,59
+1829,179,BBQ Chicken Pizza,Casual,19.04,51
+1830,179,Chocolate Cake,Dessert,5.7,39
+1831,179,Veggie Pizza,Casual,22.87,54
+1832,179,Iced Tea,Drinks,5.9,43
+1833,179,Iced Tea,Drinks,6.9,22
+1834,179,Fresh Juice,Drinks,2.16,51
+1835,179,Smoothie,Drinks,6.19,29
+1836,179,Fresh Juice,Drinks,5.51,95
+1837,179,Makloub,Fast Food,9.68,51
+1838,179,Margherita Pizza,Casual,23.94,75
+1839,179,Makloub,Fast Food,7.63,79
+1840,179,Cheese Burger,Fast Food,11.16,25
+1841,180,Veggie Pizza,Casual,22.74,78
+1842,180,Smoothie,Drinks,2.26,15
+1843,180,BBQ Chicken Pizza,Casual,28.67,76
+1844,180,Smoothie,Drinks,7.04,73
+1845,180,Margherita Pizza,Casual,23.36,94
+1846,180,Libanais,Fast Food,5.21,82
+1847,180,Smoothie,Drinks,7.79,94
+1848,180,Fruit Tart,Dessert,5.73,88
+1849,180,Veggie Pizza,Casual,27.29,99
+1850,180,Fruit Tart,Dessert,8.51,80
+1851,180,Fruit Tart,Dessert,8.64,10
+1852,180,Libanais,Fast Food,10.62,26
+1853,181,Iced Tea,Drinks,3.12,89
+1854,181,Fruit Tart,Dessert,5.02,54
+1855,181,Classic Burger,Fast Food,11.51,27
+1856,181,Ice Cream Sundae,Dessert,5.25,56
+1857,181,Lemonade,Drinks,7.03,78
+1858,181,Lemonade,Drinks,4.32,16
+1859,181,Veggie Pizza,Casual,25.04,87
+1860,181,Cheese Burger,Fast Food,11.74,14
+1861,182,Veggie Pizza,Casual,19.61,96
+1862,182,Kebab,Fast Food,,43
+1863,182,Margherita Pizza,Casual,17.35,11
+1864,182,Fruit Tart,Dessert,7.28,37
+1865,182,Iced Tea,Drinks,7.09,58
+1866,182,Fruit Tart,Dessert,6.79,27
+1867,182,Fruit Tart,Dessert,9.7,79
+1868,182,Chocolate Cake,Dessert,7.13,59
+1869,182,Fruit Tart,Dessert,8.29,49
+1870,182,Fresh Juice,Drinks,2.31,32
+1871,182,Ice Cream Sundae,Dessert,8.21,53
+1872,183,Veggie Pizza,Casual,22.65,27
+1873,183,Ice Cream Sundae,Dessert,5.03,25
+1874,183,Ice Cream Sundae,Dessert,,95
+1875,183,Iced Tea,Drinks,4.89,64
+1876,183,Chocolate Cake,Dessert,7.61,85
+1877,183,Fresh Juice,Drinks,5.87,56
+1878,183,Ice Cream Sundae,Dessert,5.82,83
+1879,183,Veggie Burger,Fast Food,14.31,29
+1880,184,Tacos,Fast Food,13.9,21
+1881,184,Kebab,Fast Food,,23
+1882,184,Lemonade,Drinks,4.76,34
+1883,184,Fresh Juice,Drinks,5.27,10
+1884,184,Cheesecake,Dessert,9.97,38
+1885,184,Smoothie,Drinks,7.99,36
+1886,184,Fruit Tart,Dessert,9.74,78
+1887,184,BBQ Chicken Pizza,Casual,24.48,21
+1888,184,Lemonade,Drinks,7.81,50
+1889,185,Kebab,Fast Food,5.81,89
+1890,185,Smoothie,Drinks,2.4,98
+1891,185,Fresh Juice,Drinks,2.17,51
+1892,185,Margherita Pizza,Casual,21.3,57
+1893,185,Fruit Tart,Dessert,5.7,90
+1894,185,Ice Cream Sundae,Dessert,7.69,66
+1895,185,Smoothie,Drinks,7.23,22
+1896,185,BBQ Chicken Pizza,Casual,18.41,73
+1897,185,BBQ Chicken Pizza,Casual,16.64,76
+1898,185,Veggie Pizza,Casual,19.61,31
+1899,185,Veggie Pizza,Casual,25.75,35
+1900,185,Veggie Pizza,Casual,15.84,33
+1901,185,Ice Cream Sundae,Dessert,7.5,23
+1902,186,BBQ Chicken Pizza,Casual,18.11,23
+1903,186,Cheesecake,Dessert,7.06,27
+1904,186,Fresh Juice,Drinks,2.6,42
+1905,186,Chicken Burger,Fast Food,5.74,58
+1906,186,Tacos,Fast Food,13.3,45
+1907,186,Pepperoni Pizza,Casual,21.23,33
+1908,186,Iced Tea,Drinks,4.2,45
+1909,186,Chawarma,Fast Food,10.92,80
+1910,186,Fresh Juice,Drinks,3.98,22
+1911,186,Chocolate Cake,Dessert,8.2,39
+1912,186,Chocolate Cake,Dessert,8.25,95
+1913,187,Chocolate Cake,Dessert,8.72,94
+1914,187,Ice Cream Sundae,Dessert,5.26,28
+1915,187,Veggie Pizza,Casual,22.06,31
+1916,187,Chocolate Cake,Dessert,9.64,56
+1917,187,Margherita Pizza,Casual,28.42,24
+1918,187,Margherita Pizza,Casual,,56
+1919,187,BBQ Chicken Pizza,Casual,24.52,35
+1920,187,Chocolate Cake,Dessert,5.18,57
+1921,187,Iced Tea,Drinks,4.2,55
+1922,187,Iced Tea,Drinks,5.54,18
+1923,187,Veggie Pizza,Casual,24.19,66
+1924,188,Fresh Juice,Drinks,,54
+1925,188,Fruit Tart,Dessert,6.04,35
+1926,188,Tacos,Fast Food,12.34,26
+1927,188,Lemonade,Drinks,,96
+1928,188,Chocolate Cake,Dessert,7.28,57
+1929,188,Cheese Burger,Fast Food,8.15,52
+1930,188,Lemonade,Drinks,3.94,86
+1931,188,Chawarma,Fast Food,14.33,85
+1932,188,Iced Tea,Drinks,3.02,33
+1933,189,Cheesecake,Dessert,,61
+1934,189,Margherita Pizza,Casual,28.01,64
+1935,189,Fresh Juice,Drinks,3.48,40
+1936,189,Chocolate Cake,Dessert,8.98,21
+1937,189,Cheesecake,Dessert,9.88,29
+1938,190,Fresh Juice,Drinks,2.87,30
+1939,190,Fresh Juice,Drinks,6.29,26
+1940,190,Ice Cream Sundae,Dessert,5.73,86
+1941,190,Pepperoni Pizza,Casual,15.34,39
+1942,190,Margherita Pizza,Casual,,22
+1943,190,Pepperoni Pizza,Casual,29.07,31
+1944,190,Veggie Pizza,Casual,19.99,92
+1945,190,Fresh Juice,Drinks,3.4,39
+1946,190,Veggie Pizza,Casual,16.75,72
+1947,190,Iced Tea,Drinks,7.37,99
+1948,190,Fruit Tart,Dessert,9.0,46
+1949,190,Kebab,Fast Food,13.98,86
+1950,190,Lemonade,Drinks,4.18,58
+1951,191,Chocolate Cake,Dessert,5.0,69
+1952,191,Classic Burger,Fast Food,13.96,40
+1953,191,Fresh Juice,Drinks,7.69,25
+1954,191,Fruit Tart,Dessert,8.62,63
+1955,191,Tacos,Fast Food,14.14,35
+1956,191,Iced Tea,Drinks,3.75,86
+1957,192,Lemonade,Drinks,3.17,33
+1958,192,Cheesecake,Dessert,5.78,45
+1959,192,Iced Tea,Drinks,2.99,30
+1960,192,Pepperoni Pizza,Casual,26.8,35
+1961,192,Cheesecake,Dessert,6.09,86
+1962,192,Chawarma,Fast Food,11.82,84
+1963,192,Chocolate Cake,Dessert,8.44,45
+1964,192,Chocolate Cake,Dessert,6.69,30
+1965,192,Pepperoni Pizza,Casual,20.55,66
+1966,192,Kebab,Fast Food,11.45,38
+1967,192,Veggie Pizza,Casual,,63
+1968,192,Pepperoni Pizza,Casual,29.32,45
+1969,192,Libanais,Fast Food,13.59,80
+1970,192,Pepperoni Pizza,Casual,21.7,92
+1971,192,Chocolate Cake,Dessert,9.03,88
+1972,193,Cheesecake,Dessert,7.9,44
+1973,193,Fruit Tart,Dessert,6.73,75
+1974,193,Veggie Pizza,Casual,22.15,38
+1975,193,Pepperoni Pizza,Casual,,71
+1976,193,Kebab,Fast Food,13.88,81
+1977,194,Ice Cream Sundae,Dessert,7.28,69
+1978,194,Cheesecake,Dessert,5.49,80
+1979,194,Veggie Pizza,Casual,20.71,56
+1980,194,Kebab,Fast Food,8.81,27
+1981,194,BBQ Chicken Pizza,Casual,27.97,94
+1982,194,Chicken Burger,Fast Food,6.3,97
+1983,194,Ice Cream Sundae,Dessert,5.52,24
+1984,194,Libanais,Fast Food,9.1,93
+1985,194,Chocolate Cake,Dessert,8.3,67
+1986,194,Fresh Juice,Drinks,7.6,43
+1987,194,Libanais,Fast Food,8.02,14
+1988,195,BBQ Chicken Pizza,Casual,17.56,46
+1989,195,Cheesecake,Dessert,5.78,65
+1990,195,Ice Cream Sundae,Dessert,8.66,27
+1991,195,Fresh Juice,Drinks,3.32,17
+1992,195,BBQ Chicken Pizza,Casual,17.24,44
+1993,195,Margherita Pizza,Casual,,18
+1994,195,Fruit Tart,Dessert,8.25,13
+1995,195,Cheesecake,Dessert,9.74,33
+1996,196,Cheesecake,Dessert,8.86,45
+1997,196,Smoothie,Drinks,4.78,65
+1998,196,Lemonade,Drinks,2.98,62
+1999,196,Margherita Pizza,Casual,24.89,13
+2000,196,Fresh Juice,Drinks,6.39,14
+2001,196,Chicken Burger,Fast Food,13.39,47
+2002,196,Libanais,Fast Food,11.4,26
+2003,197,Kebab,Fast Food,12.16,93
+2004,197,Classic Burger,Fast Food,10.84,16
+2005,197,Tacos,Fast Food,6.92,19
+2006,197,Cheesecake,Dessert,6.42,86
+2007,197,Margherita Pizza,Casual,21.21,17
+2008,197,Chocolate Cake,Dessert,5.29,15
+2009,198,Cheesecake,Dessert,9.0,57
+2010,198,Veggie Burger,Fast Food,12.28,75
+2011,198,Smoothie,Drinks,,63
+2012,198,Chawarma,Fast Food,13.1,92
+2013,198,Makloub,Fast Food,10.22,54
+2014,198,Libanais,Fast Food,10.67,25
+2015,198,Cheesecake,Dessert,7.37,97
+2016,198,Margherita Pizza,Casual,18.46,59
+2017,198,Cheese Burger,Fast Food,6.22,20
+2018,198,Iced Tea,Drinks,4.83,22
+2019,198,Cheesecake,Dessert,8.08,43
+2020,198,Classic Burger,Fast Food,11.47,63
+2021,198,Chocolate Cake,Dessert,9.77,73
+2022,198,Veggie Pizza,Casual,16.82,99
+2023,198,Tacos,Fast Food,13.97,33
+2024,199,Tacos,Fast Food,12.34,79
+2025,199,Ice Cream Sundae,Dessert,8.74,48
+2026,199,Kebab,Fast Food,12.19,14
+2027,199,Iced Tea,Drinks,7.67,40
+2028,199,Fresh Juice,Drinks,2.09,84
+2029,199,Margherita Pizza,Casual,23.86,22
+2030,199,Chocolate Cake,Dessert,,86
+2031,200,Chicken Burger,Fast Food,13.61,67
+2032,200,Chicken Burger,Fast Food,13.45,92
+2033,200,BBQ Chicken Pizza,Casual,19.59,19
+2034,200,Ice Cream Sundae,Dessert,9.0,43
+2035,200,Veggie Pizza,Casual,27.31,29
+2036,200,Lemonade,Drinks,3.04,41
+2037,200,Lemonade,Drinks,7.37,80
+2038,200,Cheese Burger,Fast Food,,18
+2039,200,Pepperoni Pizza,Casual,22.02,44
+2040,200,Margherita Pizza,Casual,22.39,73
+2041,200,BBQ Chicken Pizza,Casual,22.61,11
+2042,200,Fresh Juice,Drinks,7.34,42
+2043,200,Kebab,Fast Food,7.23,55
+2044,200,Veggie Burger,Fast Food,12.62,55
