@@ -24,6 +24,56 @@ def get_connection():
         password=DB_PASSWORD
     )
 
+# Global sets and locks for uniqueness
+unique_usernames = set()
+unique_post_descriptions = set()
+username_lock = threading.Lock()
+post_desc_lock = threading.Lock()
+
+def load_existing_usernames():
+    """
+    Loads existing usernames from the 'users' table in the database into the global set.
+    """
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT username FROM users")
+        rows = cursor.fetchall()
+        with username_lock:
+            for row in rows:
+                unique_usernames.add(row[0])
+        cursor.close()
+        conn.close()
+        print(f"Loaded {len(unique_usernames)} existing usernames.")
+    except Exception as e:
+        print("Error loading existing usernames:", e)
+
+def generate_post_description(sentiment):
+    """
+    Generates a meaningful post description using templates.
+    """
+    if sentiment == 'positive':
+        templates = [
+            "Absolutely {} and {}! Highly recommended.",
+            "The {} taste and {} presentation exceeded expectations.",
+            "A truly {} experience with {} flavors.",
+            "Delicious, {} dish with {} service."
+        ]
+        adjectives1 = ["delightful", "amazing", "exceptional", "incredible", "fantastic", "remarkable"]
+        adjectives2 = ["vibrant", "fresh", "satisfying", "memorable", "outstanding", "exquisite"]
+    else:
+        templates = [
+            "Unfortunately, the dish was {} and {}.",
+            "A {} experience with {} flavors.",
+            "The {} presentation and {} taste left much to desire.",
+            "Disappointing, {} dish with {} quality."
+        ]
+        adjectives1 = ["mediocre", "bland", "disappointing", "lackluster", "subpar", "unimpressive"]
+        adjectives2 = ["poor", "unsatisfactory", "dull", "underwhelming", "off", "bad"]
+
+    template = random.choice(templates)
+    return template.format(random.choice(adjectives1), random.choice(adjectives2))
+
 # -------------------------
 # Orders Insertion Function
 # -------------------------
@@ -71,7 +121,22 @@ def insert_post():
     while True:
         now = datetime.now()
         restaurant_id = random.randint(1, 200)
-        description = fake.sentence(nb_words=10)
+        # Choose sentiment for generating description
+        sentiment = random.choices(['positive', 'negative'], weights=[0.8, 0.2])[0]
+        # Generate a unique post description
+        description = None
+        attempt = 0
+        while attempt < 100:
+            candidate = generate_post_description(sentiment)
+            with post_desc_lock:
+                if candidate not in unique_post_descriptions:
+                    unique_post_descriptions.add(candidate)
+                    description = candidate
+                    break
+            attempt += 1
+        if description is None:
+            description = candidate  # Fallback if a unique description isn't found
+
         image_url = f"https://via.placeholder.com/150?text=Food+{random.randint(1, 10000)}"
         posted_at = now
         try:
@@ -95,8 +160,16 @@ def insert_user():
     cursor = conn.cursor()
     while True:
         now = datetime.now()
-        # Create a unique username by appending a short timestamp snippet
-        username = f"{fake.user_name()}{int(time.time()*1000)%10000}"
+        # Generate a unique username using a loop guarded by a lock
+        username = None
+        while True:
+            candidate = f"{fake.user_name()}{int(time.time()*1000)%10000}"
+            with username_lock:
+                if candidate not in unique_usernames:
+                    unique_usernames.add(candidate)
+                    username = candidate
+                    break
+
         email = f"{username.lower()}@example.tn"
         password = fake.password(length=10)
         address = fake.address().replace("\n", ", ")
@@ -146,6 +219,9 @@ def insert_weather():
 # Main Function: Start Live Data Generation
 # ------------------------------
 if __name__ == "__main__":
+    # Load existing usernames from the database to avoid duplicates
+    load_existing_usernames()
+
     threads = []
     functions = [insert_order, insert_post, insert_user, insert_weather]
 

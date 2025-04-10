@@ -184,7 +184,7 @@ services:
       start_period: 15s
 
   jobmanager:
-    image: flink:1.17
+    image: flink:1.18
     container_name: jobmanager
     ports:
       - "8082:8081"
@@ -197,7 +197,7 @@ services:
       - networkPFE
 
   taskmanager:
-    image: flink:1.17
+    image: flink:1.18
     container_name: taskmanager
     depends_on:
       - jobmanager
@@ -206,13 +206,14 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 2
+        taskmanager.numberOfTaskSlots: 4
     networks:
       - networkPFE
 
 volumes:
   postgres_data:
   airflow_logs:
+  kafka_data:
 
 networks:
   networkPFE:
