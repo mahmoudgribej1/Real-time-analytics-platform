@@ -1,0 +1,14 @@
+festival_id,city_id,festival_name,date,type
+1,7,New Year,2025-01-01,Public Holiday
+2,18,Ramadan Start,2025-03-01,Observance
+3,17,Independence Day,2025-03-20,Public Holiday
+4,4,Eid al-Fitr,2025-03-30,Public Holiday
+5,23,Martyrs' Day,2025-04-09,Public Holiday
+6,23,Labour Day,2025-05-01,Public Holiday
+7,2,Eid al-Adha,2025-06-06,Public Holiday
+8,9,Muharram,2025-06-26,Public Holiday
+9,7,Republic Day,2025-07-25,Public Holiday
+10,16,Women’s Day,2025-08-13,Public Holiday
+11,1,The Prophet's Birthday,2025-09-04,Public Holiday
+12,17,Evacuation Day,2025-10-15,Public Holiday
+13,22,Revolution and Youth Day,2025-12-17,Public Holiday

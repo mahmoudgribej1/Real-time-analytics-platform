@@ -21,6 +21,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db:/docker-entrypoint-initdb.d
+      - ./postgres-csv:/postgres-csv
+#      - ./data/synthetic:/data/synthetic
+
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow", "-d", "airflow"]
       interval: 10s
@@ -101,6 +104,8 @@ services:
       interval: 5s
       timeout: 10s
       retries: 10
+    volumes:
+      - kafka_data:/var/lib/kafka/data
     networks:
       - networkPFE
 
@@ -172,6 +177,7 @@ services:
       - "8085:8083"
     volumes:
       - "E:/flavor-trend-streamsPFE/debezium-connector-postgres-2.5.0.Final-plugin/debezium-connector-postgres:/usr/share/java/debezium-connector-postgres"
+      - kafka_connect_data:/kafka/connect
     networks:
       - networkPFE
 
@@ -184,7 +190,10 @@ services:
       start_period: 15s
 
   jobmanager:
-    image: flink:1.18
+#    image: flink:1.18
+    build:
+      context: ../flavor-trend-flink-processor
+      dockerfile: Dockerfile
     container_name: jobmanager
     ports:
       - "8082:8081"
@@ -214,6 +223,7 @@ volumes:
   postgres_data:
   airflow_logs:
   kafka_data:
+  kafka_connect_data:
 
 networks:
   networkPFE:

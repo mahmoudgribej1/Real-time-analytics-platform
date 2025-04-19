@@ -1,0 +1,201 @@
+restaurant_id,name,description,latitude,longitude,city_id,rating,opening_date
+1,Smith Bistro,A cozy restaurant with an extensive menu of exquisite specialties.,36.435470791325145,10.714438781953074,16,4.1,2022-12-29 06:21:09
+2,Le Petit Bertrand,Known for its cozy atmosphere and seasonal dishes.,34.72672232362206,10.797078859690565,17,3.4,2024-01-21 16:54:42
+3,Chaabane Bistro,A lively spot offering exquisite cuisine.,36.7675525102908,10.143695871199975,23,4.4,2022-06-04 10:29:52
+4,Le Petit BenAli,A artistic spot offering organic cuisine.,36.82598392365558,10.216550648750918,13,4.8,2022-09-11 15:10:54
+5,La Rue de Roux,An inviting space with a focus on artistic ingredients.,36.80292528826779,10.197193660143826,23,3.4,2023-11-30 08:04:26
+6,Johnson Pizza Hub,A hidden gem known for its artistic and fresh service.,34.78122230501249,10.79231713954654,17,3.0,2024-11-16 05:42:51
+7,Chez BenAli,A trendy eatery with a organic twist on classic dishes.,34.73707192854902,10.717645657009477,17,5.0,2021-06-27 03:24:40
+8,La Cantine Durand,A intimate eatery with a organic twist on classic dishes.,36.8208223051994,10.211488134772134,23,3.8,2024-04-03 15:17:18
+9,Roux Bistro,A popular destination for elegant and delicious meals.,36.84179126727513,10.150858258690882,1,4.1,2021-10-21 10:20:07
+10,Johnson Grill,A vibrant eatery with a authentic twist on classic dishes.,34.74445509398246,10.7998828347665,17,5.0,2020-04-22 07:22:33
+11,Wilson Eatery,A traditional spot offering authentic cuisine.,36.85128359719841,10.165145999476954,1,4.4,2021-02-15 19:51:42
+12,Chez Bertrand,A popular destination for traditional and seasonal meals.,36.203129267355955,8.66799681885369,11,4.3,2021-06-11 03:38:16
+13,Wilson Bistro,A intimate eatery with a local twist on classic dishes.,36.80130582928743,10.198927211674706,23,3.9,2023-04-21 09:14:41
+14,Marzouki Bistro,A popular destination for inviting and organic meals.,36.131943316421115,8.762412115239012,11,3.0,2022-10-08 18:30:51
+15,Johnson Diner,A hidden gem known for its trendy and exquisite service.,36.77509113950668,10.200178303729986,23,3.7,2021-05-05 18:29:01
+16,Le Petit BenYoussef,A popular destination for vibrant and exquisite meals.,36.84369699266502,10.201641925880322,13,4.4,2021-01-26 14:11:03
+17,Rodriguez Grill,A hidden gem known for its rustic and fresh service.,36.50415273167315,10.737104662802851,16,3.0,2023-11-23 07:19:13
+18,Williams Diner,Known for its cozy atmosphere and fusion dishes.,36.80205318860682,10.145483818649602,23,4.7,2021-07-02 06:52:36
+19,Smith Pizza Hub,Serving rustic flavors with a authentic touch.,33.96861667185783,8.161929113797685,22,3.6,2022-08-20 09:28:14
+20,Au Coin de BenAli,A vibrant spot offering authentic cuisine.,35.211761079942974,8.78919856889886,9,3.4,2022-08-03 02:25:57
+21,Chez Marzouki,An inviting space with a focus on vibrant ingredients.,36.85160361274587,10.146393487811036,23,3.9,2024-09-28 08:46:01
+22,Jones Grill,A artistic spot offering exquisite cuisine.,36.472995095792875,10.724742808114007,16,3.1,2024-10-16 02:40:46
+23,Johnson Grill,A traditional spot offering innovative cuisine.,36.69100301750771,9.178024395221886,2,4.6,2021-04-17 16:46:54
+24,Gauthier Bistro,A rustic spot offering innovative cuisine.,36.82996037932333,10.200710744375145,1,3.7,2021-10-23 06:37:03
+25,Wilson Grill,Serving intimate flavors with a fusion touch.,33.94537626883819,8.147608722829668,22,4.4,2021-01-03 04:22:44
+26,Brown Burger Joint,A hidden gem known for its rustic and delicious service.,36.8759801149356,10.190768626389065,1,3.5,2024-03-20 01:06:21
+27,La Cantine Faure,A vibrant restaurant with an extensive menu of organic specialties.,36.75873312473484,10.21700731355503,23,3.0,2024-01-09 02:29:45
+28,Brown Bistro,An inviting space with a focus on vibrant ingredients.,36.72830610111348,10.192946053728265,3,4.0,2023-04-29 07:36:30
+29,Davis Burger Joint,Known for its modern atmosphere and organic dishes.,36.793220373924584,10.139567376090241,23,3.8,2022-07-06 00:38:22
+30,Roux Bistro,A hidden gem known for its vibrant and innovative service.,36.829383725049254,10.146955702211036,23,3.8,2022-10-27 13:10:46
+31,Garcia Bistro,A popular destination for traditional and seasonal meals.,36.77030723514795,10.140640959289177,23,3.5,2023-05-02 14:13:14
+32,Moreau Bistro,A popular destination for vibrant and authentic meals.,35.83929874780362,10.569754264312888,20,4.3,2024-04-07 12:56:02
+33,Williams Bistro,A rustic spot offering authentic cuisine.,36.78128465865329,10.171701125032913,23,3.1,2025-01-08 16:46:25
+34,Le Petit Lefevre,A elegant restaurant with an extensive menu of exquisite specialties.,35.80207783693966,10.623072897655225,20,3.5,2022-08-09 12:23:13
+35,Brown Eatery,A trendy eatery with a exquisite twist on classic dishes.,36.48367747270472,10.71489629238766,16,4.4,2022-10-25 07:01:38
+36,Marzouki Bistro,A popular destination for lively and delicious meals.,36.47378754190462,10.744410965394291,16,3.4,2022-08-26 12:30:09
+37,La Rue de Durand,A popular destination for traditional and organic meals.,35.704418868826316,10.146475989060024,8,5.0,2020-04-23 17:29:41
+38,Davis Pizza Hub,A popular destination for cozy and fresh meals.,36.14174663847515,8.749851438125999,11,3.7,2021-02-09 07:02:08
+39,Jones Diner,A modern eatery with a innovative twist on classic dishes.,35.810333742889135,10.595443811822802,20,3.0,2023-09-07 12:14:32
+40,Lefevre du Coin,A popular destination for lively and local meals.,33.88229834127268,10.051025982779313,5,3.5,2024-02-27 12:27:03
+41,Miller Bistro,A hidden gem known for its artistic and fresh service.,36.825302994777196,10.185312571718187,1,4.7,2021-10-25 16:32:03
+42,Brown Eatery,A charming restaurant with an extensive menu of local specialties.,36.78454987557512,10.201623189295352,23,4.6,2021-05-21 07:32:00
+43,La Rue de Gauthier,A cozy eatery with a exquisite twist on classic dishes.,34.73331380028301,10.790673249105266,17,4.2,2022-03-05 02:08:04
+44,Le Petit Trabelsi,An inviting space with a focus on modern ingredients.,36.91252820705005,10.183859565879013,1,3.0,2025-02-07 15:16:26
+45,La Cantine Bertrand,A trendy eatery with a classic twist on classic dishes.,33.394421226158435,10.56403436846305,14,3.7,2021-10-04 09:52:34
+46,Moreau Bistro,A vibrant spot offering fusion cuisine.,32.9263788466492,10.487670816284762,21,3.8,2022-04-28 17:59:42
+47,Brown Burger Joint,Known for its inviting atmosphere and fusion dishes.,34.42405046776672,8.832464231579376,6,3.0,2024-07-19 06:52:30
+48,Williams Eatery,A hidden gem known for its cozy and organic service.,36.81286662628004,10.171213889324813,23,5.0,2020-05-22 13:36:28
+49,La Rue de Moreau,A elegant eatery with a seasonal twist on classic dishes.,36.78118514770327,10.189960661998164,3,4.9,2021-01-03 17:17:57
+50,Roux du Coin,Serving traditional flavors with a delicious touch.,33.3549515528846,10.530616375400616,14,3.0,2023-09-11 16:25:49
+51,Garcia Eatery,A lively restaurant with an extensive menu of innovative specialties.,36.79923797354907,10.210135817655297,23,4.7,2021-04-20 11:16:13
+52,Wilson Eatery,A popular destination for vibrant and delicious meals.,34.76046492778991,10.799585098888237,17,3.1,2024-06-04 09:33:46
+53,Chez BenAli,A rustic restaurant with an extensive menu of innovative specialties.,36.82906478153854,10.180801150969886,23,3.6,2022-12-03 18:58:20
+54,Chez Girard,A modern eatery with a local twist on classic dishes.,36.84967751652209,10.15948596091735,23,4.8,2021-07-13 23:32:53
+55,Bertrand du Coin,A rustic restaurant with an extensive menu of seasonal specialties.,36.82673620401447,10.157565500210318,1,4.6,2022-06-29 06:30:20
+56,Jones Eatery,An inviting space with a focus on charming ingredients.,36.82287800214185,10.141429911852455,23,5.0,2020-10-03 22:27:56
+57,Mejri Bistro,Known for its cozy atmosphere and classic dishes.,36.70445497602353,10.181785728188864,3,3.0,2024-09-07 15:44:04
+58,Lambert Bistro,Serving lively flavors with a classic touch.,36.81526625355818,10.14847081386532,23,3.0,2025-01-22 12:58:11
+59,Au Coin de Girard,A hidden gem known for its rustic and exquisite service.,36.7747560393261,10.193995017953362,23,3.7,2024-01-01 16:57:34
+60,Au Coin de Roux,A artistic eatery with a local twist on classic dishes.,36.20264515716468,8.716702961906337,11,4.3,2023-03-15 15:01:24
+61,Lambert Bistro,A popular destination for elegant and fusion meals.,33.8326919506922,10.085935543061359,5,3.2,2024-01-26 01:22:11
+62,Johnson Bistro,Serving artistic flavors with a fresh touch.,34.72913661638231,10.797720846808888,17,4.1,2022-04-26 09:59:46
+63,Belhaj Bistro,A hidden gem known for its elegant and classic service.,33.96016039194798,8.131340266454686,22,3.0,2024-12-06 22:08:03
+64,Lambert Bistro,A elegant eatery with a fresh twist on classic dishes.,36.74911760083286,10.171232120067824,3,3.0,2024-10-13 17:01:28
+65,Smith Diner,A rustic eatery with a organic twist on classic dishes.,36.84149910222709,10.221955892106694,23,4.2,2023-02-23 22:33:07
+66,La Rue de Bouraoui,Known for its artistic atmosphere and exquisite dishes.,36.75551942661694,10.173367129556627,3,5.0,2020-11-14 01:17:38
+67,La Rue de BenAli,A trendy spot offering local cuisine.,36.39339748886236,10.166118179990752,24,4.1,2022-04-29 09:21:59
+68,Girard Bistro,A hidden gem known for its elegant and local service.,36.910876735205335,10.128823862298166,1,5.0,2021-01-13 18:43:41
+69,Jones Diner,A popular destination for intimate and seasonal meals.,35.85284257337884,10.57154048859073,20,4.8,2021-01-31 07:22:12
+70,Wilson Pizza Hub,A hidden gem known for its charming and authentic service.,33.87752440249978,10.092547975651593,5,3.8,2022-05-31 18:26:22
+71,Bertrand Bistro,A inviting spot offering fusion cuisine.,35.864198942462366,10.586700940944969,20,3.8,2023-08-08 18:59:23
+72,Lambert du Coin,Serving elegant flavors with a innovative touch.,36.90977550681235,10.121407932802812,1,4.3,2023-10-21 16:28:09
+73,La Cantine Bouraoui,A hidden gem known for its charming and classic service.,34.758877177617855,10.743808439932385,17,4.3,2021-12-16 03:02:53
+74,Chez Moreau,Serving intimate flavors with a organic touch.,36.36979755157028,10.119310764484725,24,4.8,2022-08-06 07:32:51
+75,Chaabane Bistro,A trendy restaurant with an extensive menu of seasonal specialties.,36.51224349954361,10.69373839941932,16,3.0,2022-06-24 01:10:27
+76,Girard Bistro,A lively eatery with a fresh twist on classic dishes.,36.78353902256894,10.197712997826898,23,4.2,2023-05-21 09:10:17
+77,Le Petit Faure,Known for its rustic atmosphere and seasonal dishes.,36.78257903306365,10.150837882793745,23,3.8,2023-04-06 10:15:34
+78,Wilson Burger Joint,An inviting space with a focus on artistic ingredients.,35.19271568900842,8.824665930927644,9,4.8,2020-05-27 15:19:44
+79,La Cantine Trabelsi,An inviting space with a focus on intimate ingredients.,36.50107430348976,8.816695226199098,7,3.3,2024-08-10 18:29:05
+80,Miller Grill,Serving intimate flavors with a authentic touch.,36.85227361028748,10.140104309003503,23,3.0,2023-03-03 05:40:58
+81,Davis Diner,Known for its trendy atmosphere and organic dishes.,35.7797814243884,10.826311876370806,15,3.8,2022-11-15 00:43:16
+82,Belhaj Bistro,A hidden gem known for its cozy and authentic service.,36.51340152825126,10.711173965036117,16,3.9,2023-05-05 14:26:05
+83,Davis Eatery,A vibrant restaurant with an extensive menu of innovative specialties.,33.93015661333241,10.091853978474873,5,5.0,2021-07-17 05:12:41
+84,Gauthier Bistro,A inviting eatery with a classic twist on classic dishes.,36.82332721942797,10.167596084932985,1,4.2,2021-08-17 07:35:41
+85,Lambert du Coin,A cozy restaurant with an extensive menu of innovative specialties.,36.48352303173023,10.778154940269339,16,3.0,2024-11-08 18:46:31
+86,Miller Burger Joint,A charming restaurant with an extensive menu of seasonal specialties.,36.79290258597416,10.267222487688505,3,3.0,2024-11-28 02:46:40
+87,Roux Bistro,A popular destination for rustic and fresh meals.,36.43845227181323,10.129392640849703,24,3.6,2024-12-02 17:55:40
+88,Le Petit Girard,A popular destination for inviting and seasonal meals.,35.77757209567346,10.616433381059506,20,4.0,2023-03-31 00:06:34
+89,Miller Pizza Hub,A inviting eatery with a delicious twist on classic dishes.,36.76111777351632,10.22687310466583,23,4.5,2020-10-05 11:28:12
+90,Jones Bistro,A lively eatery with a seasonal twist on classic dishes.,36.85033778084385,10.135604814217247,1,3.7,2024-01-19 13:22:43
+91,Trabelsi Bistro,A hidden gem known for its artistic and organic service.,35.857236708203914,10.561161312377726,20,3.9,2023-02-17 02:02:21
+92,Lefevre Bistro,Serving inviting flavors with a authentic touch.,34.77375653374642,10.788717946439693,17,4.7,2022-04-17 14:23:45
+93,Lefevre du Coin,Known for its artistic atmosphere and organic dishes.,34.465883298132475,8.822473717759594,6,4.2,2021-04-11 07:51:36
+94,BenAli Bistro,An inviting space with a focus on traditional ingredients.,35.67847339621069,10.117053423942947,8,4.2,2021-10-15 00:28:19
+95,Miller Grill,Serving cozy flavors with a classic touch.,36.44219666983801,10.720765629602477,16,4.1,2021-12-08 21:15:44
+96,Mejri Bistro,A hidden gem known for its vibrant and authentic service.,34.71800537834938,10.7589032831087,17,3.2,2022-10-14 23:34:28
+97,Durand Bistro,A hidden gem known for its modern and seasonal service.,36.770723990134,10.142523894654252,13,4.7,2021-04-29 14:34:47
+98,Lambert Bistro,A intimate eatery with a delicious twist on classic dishes.,36.11674979494885,9.369115287417959,19,3.3,2024-11-12 23:35:02
+99,Johnson Burger Joint,A rustic spot offering authentic cuisine.,36.77766217975405,10.228483931316891,23,4.5,2021-07-03 10:55:39
+100,La Rue de Faure,A popular destination for inviting and organic meals.,33.962266116341254,8.131997758453391,22,3.6,2023-07-19 05:59:23
+101,Jones Bistro,A hidden gem known for its lively and seasonal service.,36.789058777695196,10.146370088973383,13,4.2,2020-07-03 10:09:53
+102,Chez Roux,An inviting space with a focus on lively ingredients.,36.4985792713721,10.714311668868797,16,3.7,2022-11-01 16:00:00
+103,Au Coin de BenAli,A popular destination for rustic and seasonal meals.,36.45518668813771,10.769432772454401,16,3.8,2022-11-29 01:04:23
+104,Chez Trabelsi,A popular destination for lively and local meals.,36.47531155199691,10.714385110701272,16,4.5,2020-05-18 07:02:48
+105,Johnson Burger Joint,Serving intimate flavors with a delicious touch.,36.8102286330159,10.181010790801956,23,4.8,2020-06-11 12:10:00
+106,Au Coin de Bouraoui,A popular destination for vibrant and exquisite meals.,36.71797431918279,10.168694689070525,3,3.6,2024-03-19 18:06:17
+107,Au Coin de BenYoussef,A intimate restaurant with an extensive menu of fresh specialties.,36.72204132003161,9.19964385703814,2,5.0,2020-12-15 17:59:07
+108,Faure Bistro,An inviting space with a focus on rustic ingredients.,35.789569262916814,10.599888557950289,20,3.3,2024-10-24 22:33:22
+109,Lefevre Bistro,Known for its vibrant atmosphere and innovative dishes.,36.76206097119598,10.140396202254285,23,4.0,2022-12-27 17:13:48
+110,Brown Bistro,A elegant spot offering authentic cuisine.,36.84867801251414,10.211597136548798,23,4.4,2021-07-28 16:08:40
+111,La Cantine Chaabane,A popular destination for charming and fresh meals.,34.74041526681765,10.747153067539207,17,3.8,2020-10-15 08:27:59
+112,Chaabane Bistro,Known for its vibrant atmosphere and innovative dishes.,36.79770681480215,10.17724590767652,23,4.9,2020-06-22 08:41:59
+113,Mejri Bistro,Known for its rustic atmosphere and delicious dishes.,34.454669489057515,8.753271886761611,6,3.7,2023-08-31 10:30:27
+114,Johnson Eatery,A popular destination for inviting and seasonal meals.,34.78198673738959,10.753202617744638,17,5.0,2021-05-20 11:46:56
+115,La Cantine Bertrand,A popular destination for artistic and fresh meals.,36.800236310053094,10.15653360291443,23,4.6,2021-01-06 06:57:37
+116,Girard du Coin,An inviting space with a focus on cozy ingredients.,36.48595005996426,10.743300582497364,16,4.8,2021-01-02 15:12:04
+117,Davis Bistro,An inviting space with a focus on intimate ingredients.,36.787151884998245,10.178552693680603,23,3.7,2023-07-20 12:16:15
+118,Bertrand du Coin,Serving modern flavors with a seasonal touch.,36.80902106998861,10.167688758042834,23,3.0,2024-04-13 19:24:51
+119,Garcia Bistro,A hidden gem known for its intimate and delicious service.,36.79244454104498,10.173061163415355,3,4.7,2022-07-07 04:25:39
+120,La Cantine Bouraoui,A lively spot offering delicious cuisine.,36.78778080357318,10.203529799030129,23,4.6,2022-04-17 08:34:18
+121,Dupont Bistro,A hidden gem known for its modern and authentic service.,36.84801069680498,10.143920002949123,23,5.0,2020-10-17 22:13:46
+122,Durand du Coin,Serving charming flavors with a seasonal touch.,36.773652187098754,10.161974598568312,23,3.0,2025-03-01 11:25:42
+123,Lambert Bistro,Known for its inviting atmosphere and classic dishes.,36.39470229105952,10.116206624800094,24,5.0,2021-07-28 19:13:24
+124,BenYoussef Bistro,A vibrant restaurant with an extensive menu of innovative specialties.,36.82967932034394,10.169826085454394,23,4.2,2020-07-12 12:54:51
+125,Chez Durand,A cozy eatery with a organic twist on classic dishes.,35.48568787844283,10.14123997208411,12,4.2,2022-12-17 03:49:29
+126,Gauthier Bistro,Serving modern flavors with a fusion touch.,35.78971433285784,10.586708245188905,20,5.0,2020-12-19 08:52:34
+127,Miller Bistro,Serving charming flavors with a fusion touch.,35.19349668871966,8.861462979936785,9,3.4,2022-12-22 17:37:24
+128,Williams Pizza Hub,A hidden gem known for its cozy and local service.,33.85799982070165,10.048390948580415,5,3.0,2024-07-28 06:43:42
+129,Chez Dupont,A hidden gem known for its rustic and authentic service.,36.82342746248637,10.148889024969645,23,4.4,2021-12-01 08:14:27
+130,Brown Diner,A hidden gem known for its rustic and innovative service.,36.805451883193975,10.16695989941295,23,4.4,2021-01-12 21:00:26
+131,BenAli Bistro,A popular destination for rustic and innovative meals.,36.48375532352961,8.764298464344007,7,3.0,2025-01-06 11:07:35
+132,Moreau Bistro,An inviting space with a focus on inviting ingredients.,36.799299068321105,10.165458563872662,23,3.2,2024-11-22 10:11:25
+133,Le Petit Girard,A hidden gem known for its artistic and fusion service.,36.83972687680932,10.227671955070624,23,3.2,2023-07-04 20:48:28
+134,Johnson Bistro,Serving traditional flavors with a innovative touch.,36.806939402260284,10.160366404603122,13,4.9,2021-02-04 19:02:40
+135,Rodriguez Eatery,A vibrant restaurant with an extensive menu of organic specialties.,36.46401542705666,10.704821838534516,16,3.4,2022-12-19 14:50:20
+136,La Cantine Girard,A traditional spot offering organic cuisine.,36.84839588212365,10.200365590244914,23,4.8,2022-08-17 20:00:32
+137,Miller Pizza Hub,A popular destination for charming and organic meals.,36.77059575362808,10.176953412923913,3,4.0,2021-09-29 09:43:58
+138,Durand du Coin,A modern restaurant with an extensive menu of fusion specialties.,35.20082332814197,8.85751981587976,9,4.8,2020-04-08 20:32:39
+139,Miller Burger Joint,A artistic spot offering exquisite cuisine.,36.83991602329271,10.150458975668158,23,4.1,2023-07-11 00:13:14
+140,Faure Bistro,A modern eatery with a delicious twist on classic dishes.,34.44753638980566,8.775140307852805,6,4.3,2020-04-29 18:50:16
+141,Au Coin de Dupont,A modern restaurant with an extensive menu of organic specialties.,36.743597346083675,10.218222588103247,3,3.7,2023-10-12 14:16:28
+142,La Cantine Lefevre,A hidden gem known for its trendy and classic service.,36.197965425916315,8.675342357212587,11,4.2,2023-11-30 00:37:25
+143,Le Petit Trabelsi,A cozy spot offering fusion cuisine.,35.834400157936955,10.648351238825915,20,3.0,2024-05-17 15:44:52
+144,Girard du Coin,An inviting space with a focus on lively ingredients.,33.96563400950122,8.176882722811358,22,3.3,2024-09-08 05:20:33
+145,Chez BenYoussef,A hidden gem known for its modern and fresh service.,36.822307006738384,10.227892700420709,23,3.3,2024-10-30 13:06:02
+146,Faure du Coin,A traditional eatery with a local twist on classic dishes.,32.95077378658581,10.483704539205538,21,5.0,2020-08-15 06:06:55
+147,Davis Pizza Hub,Serving elegant flavors with a classic touch.,36.7796686312173,10.157781855248546,13,3.0,2024-05-22 14:52:56
+148,La Rue de Belhaj,Known for its trendy atmosphere and classic dishes.,33.84232252844245,10.120908859583087,5,3.8,2021-09-11 10:32:01
+149,La Cantine Chaabane,A popular destination for intimate and seasonal meals.,36.384920890484054,10.13568410573349,24,4.7,2021-08-07 01:18:17
+150,Brown Grill,A popular destination for modern and local meals.,36.87343688976989,10.156216153735492,1,4.3,2022-04-29 20:50:45
+151,Girard Bistro,A modern restaurant with an extensive menu of local specialties.,35.66070676942213,10.120035269088719,8,4.6,2021-08-09 19:02:34
+152,Le Petit BenYoussef,A hidden gem known for its lively and local service.,36.772985219571495,10.156349883965563,13,4.5,2021-11-27 21:16:54
+153,La Rue de Girard,A cozy eatery with a local twist on classic dishes.,36.878382758771075,10.163886406736253,1,3.1,2024-02-22 23:51:07
+154,Bouraoui Bistro,A elegant restaurant with an extensive menu of fusion specialties.,36.09529336408016,9.336731608165579,19,3.2,2025-01-21 05:14:37
+155,Le Petit Bertrand,A popular destination for cozy and authentic meals.,35.84722991537843,10.625770804151182,20,3.2,2025-02-17 06:05:39
+156,La Cantine Chaabane,Serving cozy flavors with a organic touch.,36.83702608477512,10.19918710661412,23,3.7,2022-09-02 05:20:33
+157,Brown Pizza Hub,A hidden gem known for its trendy and innovative service.,33.935823085062744,8.149327102772935,22,4.2,2024-08-12 20:31:49
+158,Dupont Bistro,A hidden gem known for its trendy and local service.,36.787570386099404,10.171423858963655,23,5.0,2020-05-19 00:07:53
+159,Le Petit Gauthier,A lively spot offering delicious cuisine.,36.415578257534875,10.115536161123247,24,4.0,2021-02-21 14:37:37
+160,Chez BenYoussef,A popular destination for charming and delicious meals.,36.434776753120275,10.762012967509934,16,5.0,2021-02-24 07:08:19
+161,La Cantine Lambert,A traditional restaurant with an extensive menu of local specialties.,36.449439442175574,10.756740858583612,16,3.9,2021-10-21 00:34:18
+162,Au Coin de Gauthier,A rustic restaurant with an extensive menu of fusion specialties.,36.77656555872114,10.195248192521575,3,4.4,2022-08-07 20:18:36
+163,Brown Bistro,Serving inviting flavors with a seasonal touch.,36.74357575831514,10.172797284908173,3,3.9,2024-07-18 02:37:17
+164,Wilson Grill,Known for its trendy atmosphere and fusion dishes.,36.801832051606794,10.255208891637029,3,3.0,2024-02-01 05:13:05
+165,Trabelsi du Coin,A hidden gem known for its intimate and local service.,35.7444839141636,10.786058015886002,15,5.0,2020-11-08 12:53:47
+166,Dupont du Coin,A popular destination for elegant and fresh meals.,36.852207638880046,10.193658316900787,23,4.0,2023-04-24 20:15:54
+167,Brown Eatery,A trendy spot offering fresh cuisine.,35.477085812389404,10.112377394690615,12,4.3,2023-01-29 13:53:51
+168,Trabelsi Bistro,A vibrant eatery with a organic twist on classic dishes.,36.79858280338765,10.138311701360719,23,4.7,2023-06-25 01:34:43
+169,Brown Grill,A lively eatery with a delicious twist on classic dishes.,36.75890343522359,10.168435850431813,3,4.0,2022-04-21 16:09:47
+170,Williams Burger Joint,Known for its inviting atmosphere and innovative dishes.,36.76608002097992,10.207938217883605,23,3.0,2024-08-30 00:58:26
+171,Girard Bistro,Known for its charming atmosphere and local dishes.,36.72542490939587,10.261018065132832,3,4.5,2020-06-30 17:59:04
+172,Brown Eatery,A intimate spot offering fresh cuisine.,34.38444331560697,8.750096154145178,6,4.3,2020-12-03 14:16:17
+173,Au Coin de Trabelsi,A hidden gem known for its modern and fusion service.,36.8998743848744,10.13499324634554,1,3.9,2022-12-11 23:21:16
+174,Roux Bistro,A hidden gem known for its rustic and classic service.,36.789885297346146,10.174229511077321,13,5.0,2020-10-14 04:00:44
+175,Dupont du Coin,Known for its rustic atmosphere and seasonal dishes.,36.84338194628265,10.215789522438858,23,3.7,2023-10-13 08:47:00
+176,Williams Eatery,A vibrant eatery with a innovative twist on classic dishes.,36.834915797549385,10.182531300358228,23,4.0,2023-09-02 23:49:11
+177,Durand du Coin,A hidden gem known for its vibrant and seasonal service.,36.81838064598685,10.142856657344995,23,3.3,2024-05-23 21:05:48
+178,Le Petit Trabelsi,A hidden gem known for its modern and fresh service.,36.85323623307524,10.22211136024682,23,5.0,2022-02-11 17:23:57
+179,Roux du Coin,A trendy spot offering innovative cuisine.,36.78480322208039,10.202839640444443,23,4.5,2021-03-11 07:57:32
+180,Bertrand Bistro,A cozy spot offering classic cuisine.,35.86171210182332,10.645443462477765,20,4.9,2023-10-28 14:47:54
+181,Le Petit Durand,A popular destination for modern and organic meals.,33.86993804162754,10.084094595601824,5,3.5,2024-09-18 09:05:02
+182,Lambert Bistro,Known for its elegant atmosphere and seasonal dishes.,32.9263322450608,10.436332240031323,21,4.0,2021-08-04 09:33:42
+183,Bertrand Bistro,An inviting space with a focus on rustic ingredients.,35.185463325252066,8.797051395014897,9,4.1,2021-04-01 17:24:53
+184,Mejri Bistro,A intimate restaurant with an extensive menu of fusion specialties.,36.77445183891047,10.141085068623045,23,4.9,2021-02-02 06:07:40
+185,Au Coin de Faure,A hidden gem known for its traditional and fusion service.,37.241463208796915,9.827979587470585,4,3.9,2022-10-18 01:19:32
+186,Belhaj Bistro,A vibrant spot offering fusion cuisine.,36.06940140069719,9.336438633988502,19,5.0,2020-12-07 03:41:26
+187,Durand Bistro,A popular destination for cozy and organic meals.,35.80783519235504,10.590372890349201,20,4.7,2021-08-29 07:49:47
+188,Au Coin de Lambert,A hidden gem known for its rustic and fusion service.,35.06926848788684,9.482157334017908,18,3.2,2024-08-01 10:37:06
+189,Bouraoui Bistro,A trendy spot offering innovative cuisine.,34.46631886780239,8.798341159428288,6,4.3,2020-12-24 08:45:58
+190,La Cantine Lefevre,A charming eatery with a classic twist on classic dishes.,35.789088617145865,10.761777850362815,15,3.0,2024-09-07 19:12:48
+191,La Cantine Lambert,A hidden gem known for its traditional and local service.,34.7454497901763,10.766470784564167,17,4.1,2021-12-10 04:28:29
+192,Roux Bistro,A popular destination for elegant and authentic meals.,36.778940648452675,10.174521093310727,3,4.1,2023-07-03 00:06:31
+193,La Cantine Bertrand,A elegant spot offering delicious cuisine.,37.2840537918147,9.86028767378738,4,5.0,2020-04-01 15:51:11
+194,Belhaj Bistro,A hidden gem known for its lively and exquisite service.,36.78938609929008,10.215661866439858,3,4.3,2020-05-16 20:03:02
+195,La Rue de Lefevre,A popular destination for rustic and delicious meals.,36.71886302016404,9.182721512267104,2,4.1,2022-09-24 17:34:44
+196,Durand Bistro,Serving cozy flavors with a organic touch.,36.49052760916669,10.74371649656388,16,4.2,2022-10-17 10:25:01
+197,La Cantine Durand,Known for its intimate atmosphere and fusion dishes.,36.2224913988503,8.674679844090935,11,3.0,2024-03-18 16:14:14
+198,Miller Grill,A hidden gem known for its inviting and authentic service.,36.81494714407661,10.165332799739573,23,4.6,2021-05-04 10:51:32
+199,Dupont Bistro,A intimate spot offering local cuisine.,35.70711480428469,10.091785046552245,8,4.7,2021-01-25 06:40:34
+200,Au Coin de Bouraoui,A modern spot offering local cuisine.,36.19764806673947,8.72021188215926,11,4.1,2021-02-07 07:10:13
