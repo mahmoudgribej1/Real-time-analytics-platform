@@ -219,11 +219,28 @@ services:
     networks:
       - networkPFE
 
+  superset:
+    image: apache/superset:2.1.3
+    container_name: superset
+    depends_on:
+      - postgres
+    environment:
+      SUPERSET_SECRET_KEY: 'change_this_to_a_strong_random_string'
+      SUPERSET_DATABASE_URI: 'sqlite:////app/superset_home/superset.db'
+      MAPBOX_API_KEY: "pk.eyJ1IjoibWFobW91ZGdyaWJlaiIsImEiOiJjbWFyM2s0OTYwMW4yMmpzaGk1dXBnZTI4In0.0kckKejtizS8Hl2J6y4iuQ"
+    ports:
+      - "8088:8088"
+    volumes:
+      - superset_home:/app/superset_home
+    networks:
+      - networkPFE
+
 volumes:
   postgres_data:
   airflow_logs:
   kafka_data:
   kafka_connect_data:
+  superset_home:
 
 networks:
   networkPFE:
