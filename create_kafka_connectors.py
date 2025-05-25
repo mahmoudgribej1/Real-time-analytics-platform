@@ -65,7 +65,7 @@ tables_increment_columns = {
 
 def delete_existing_connector(name):
     try:
-        resp = requests.delete(f"{KAFKA_CONNECT_URL}/{name}")
+        resp = requests.delete(f"{KAFKA_CONNECT_URL}/{name}?deleteOffsets=true")
         if resp.status_code == 204:
             print(f"[INFO] Deleted existing connector: {name}")
     except Exception as e:
@@ -90,8 +90,8 @@ def create_connector(table):
             "slot.name": f"debezium_{table}",
             "publication.name": f"debezium_pub_{table}",
             "plugin.name": "pgoutput",
-            "snapshot.mode": "always",         # 🔄 force snapshot
-            "slot.drop.on.stop": "false",       # 🧼 dont clean slot on shutdown
+            "snapshot.mode": "always",          # 🔄 force snapshot
+            "slot.drop.on.stop": "true",       # 🧼 clean slot on shutdown
             "include.before": "true",          # ✅ ensure update `before` state
             "include.schema.changes": "false", # 🛑 skip schema changes if not needed
             "tombstones.on.delete": "false",
