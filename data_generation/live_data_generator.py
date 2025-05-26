@@ -510,9 +510,22 @@ def load_list(query):
     return vals
 
 RESTAURANT_IDS    = load_list("SELECT restaurant_id FROM restaurants;")
-COURIER_IDS       = load_list("SELECT delivery_person_id FROM delivery_personnel;")
 POST_IDS          = load_list("SELECT post_id FROM posts;")
 USER_IDS          = load_list("SELECT user_id FROM users;")
+
+# ---------------------------
+# NEW: Load couriers *by* city for consistent assignment
+# ---------------------------
+def load_couriers_by_city():
+    conn = get_connection(); cur = conn.cursor()
+    cur.execute("SELECT delivery_person_id, city_id FROM delivery_personnel;")
+    cb = {}
+    for courier_id, city_id in cur.fetchall():
+        cb.setdefault(city_id, []).append(courier_id)
+    cur.close(); conn.close()
+    return cb
+
+COURIERS_BY_CITY = load_couriers_by_city()
 
 # Load restaurant metadata (lat, lon, city)
 conn = get_connection(); cur = conn.cursor()
@@ -609,8 +622,16 @@ def insert_order():
         uid = random.choice(USER_IDS)
         rid = random.choice(RESTAURANT_IDS)
         pid = random.choice(POST_IDS) if random.random() < POSITIVE_RATE else None
-        cid = COURIER_IDS[np.random.zipf(1.4) % len(COURIER_IDS)]
+        # ── CHANGE ── pick only couriers from this restaurant's city ─────────
         meta = RESTAURANT_META[rid]
+        city_id = meta['city']
+        city_couriers = COURIERS_BY_CITY.get(city_id)
+        if not city_couriers:
+            # no couriers in this city; skip
+            time.sleep(2)
+            continue
+        cid = random.choice(city_couriers)
+        # ────────────────────────────────────────────────────────────────────
         # timestamps
         order_ts = now
         pickup_ts = now + timedelta(minutes=random.randint(10,20))
