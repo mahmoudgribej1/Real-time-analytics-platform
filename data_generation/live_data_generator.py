@@ -533,6 +533,13 @@ cur.execute("SELECT restaurant_id, latitude, longitude, city_id FROM restaurants
 RESTAURANT_META = {r[0]: {'lat': r[1], 'lon': r[2], 'city': r[3]} for r in cur.fetchall()}
 cur.close(); conn.close()
 
+# ─────────────────────────────────────────────
+# NEW: Build a fixed, sorted list of all city_ids
+# so we can “round-robin” through every city.
+# ─────────────────────────────────────────────
+CITY_LIST = [meta["city"] for meta in RESTAURANT_META.values()]
+CITY_LIST = sorted(set(CITY_LIST))  # dedupe & sort for predictability
+
 # ---------------------------
 # Realism configurations
 # ---------------------------
@@ -736,20 +743,44 @@ VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
 
 def insert_weather():
     conn = get_connection(); cur = conn.cursor()
+
+    # ─────────────────────────────────────────────────────────────
+    # 1) SEED: insert one “Sunny” record per city at startup
+    # ─────────────────────────────────────────────────────────────
+    seed_time = datetime.now()
+    for city_id in CITY_LIST:
+        try:
+            cur.execute(
+                """INSERT INTO weather_conditions (city_id, timestamp, weather)
+                   VALUES (%s, %s, %s)
+                   ON CONFLICT DO NOTHING""",
+                (city_id, seed_time, "Sunny")
+            )
+        except Exception as e:
+            print("Weather seed error:", e); conn.rollback()
+    conn.commit()
+    print(f"[{seed_time.isoformat()}] Weather seeding complete for {len(CITY_LIST)} cities")
+
+    # ─────────────────────────────────────────────────────────────
+    # 2) MAIN LOOP: round-robin update every 20 seconds
+    # ─────────────────────────────────────────────────────────────
+    idx = 0
     while True:
-        now = datetime.now()
-        w = random.choice(WEATHER_OPTIONS)
-        # pick a real restaurant city
-        city = random.choice(list(RESTAURANT_META.values()))['city']
+        now     = datetime.now()
+        city_id = CITY_LIST[idx % len(CITY_LIST)]
+        w       = random.choice(WEATHER_OPTIONS)
+
         try:
             cur.execute("""
 INSERT INTO weather_conditions (city_id, timestamp, weather)
-VALUES (%s,%s,%s)
-""", (city, now, w))
+VALUES (%s, %s, %s)
+""", (city_id, now, w))
             conn.commit()
-            print(f"[{now.isoformat()}] Weather city={city} {w}")
+            print(f"[{now.isoformat()}] Weather city={city_id} {w}")
         except Exception as e:
             print("Error inserting weather:", e); conn.rollback()
+
+        idx += 1
         time.sleep(20)
 
 if __name__ == "__main__":
