@@ -744,44 +744,23 @@ VALUES (%s,%s,%s,%s,%s,%s,%s,%s)
 def insert_weather():
     conn = get_connection(); cur = conn.cursor()
 
-    # ─────────────────────────────────────────────────────────────
-    # 1) SEED: insert one “Sunny” record per city at startup
-    # ─────────────────────────────────────────────────────────────
-    seed_time = datetime.now()
-    for city_id in CITY_LIST:
-        try:
-            cur.execute(
-                """INSERT INTO weather_conditions (city_id, timestamp, weather)
-                   VALUES (%s, %s, %s)
-                   ON CONFLICT DO NOTHING""",
-                (city_id, seed_time, "Sunny")
-            )
-        except Exception as e:
-            print("Weather seed error:", e); conn.rollback()
-    conn.commit()
-    print(f"[{seed_time.isoformat()}] Weather seeding complete for {len(CITY_LIST)} cities")
-
-    # ─────────────────────────────────────────────────────────────
-    # 2) MAIN LOOP: round-robin update every 20 seconds
-    # ─────────────────────────────────────────────────────────────
-    idx = 0
     while True:
-        now     = datetime.now()
-        city_id = CITY_LIST[idx % len(CITY_LIST)]
-        w       = random.choice(WEATHER_OPTIONS)
+        now = datetime.now()
+        for city_id in CITY_LIST:
+            w = random.choice(WEATHER_OPTIONS)
+            try:
+                cur.execute("""
+                    INSERT INTO weather_conditions (city_id, timestamp, weather)
+                    VALUES (%s, %s, %s)
+                """, (city_id, now, w))
+                conn.commit()
+                print(f"[{now.isoformat()}] Weather city={city_id} {w}")
+            except Exception as e:
+                print("Weather insert error:", e)
+                conn.rollback()
 
-        try:
-            cur.execute("""
-INSERT INTO weather_conditions (city_id, timestamp, weather)
-VALUES (%s, %s, %s)
-""", (city_id, now, w))
-            conn.commit()
-            print(f"[{now.isoformat()}] Weather city={city_id} {w}")
-        except Exception as e:
-            print("Error inserting weather:", e); conn.rollback()
-
-        idx += 1
-        time.sleep(20)
+        # All cities updated once per minute
+        time.sleep(60)
 
 if __name__ == "__main__":
     load_usernames()
