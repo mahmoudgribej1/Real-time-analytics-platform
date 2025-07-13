@@ -4,7 +4,7 @@ services:
   postgres:
     image: postgres:16
     environment:
-      POSTGRES_DB: airflow
+      POSTGRES_DB: airflow,airflow_meta
       POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       # Add these lines for CDC:
@@ -32,42 +32,52 @@ services:
       timeout: 5s
 
 
-  #  airflow:
-  #    image: apache/airflow:2.8.1
-  #    depends_on:
-  #      postgres:
-  #        condition: service_healthy
-  #    environment:
-  #      AIRFLOW__CORE__EXECUTOR: LocalExecutor
-  #      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
-  #      AIRFLOW__CORE__FERNET_KEY: 'Nju3UeY2WJ-HZlKx1tvbT03zRwe-DTt6t-1iVYokP8E='
-  #      AIRFLOW__WEBSERVER__SECRET_KEY: 'temporary_secret_key'
-  #      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
-  #      AIRFLOW__SCHEDULER__CATCHUP_BY_DEFAULT: 'false'
-  #      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'false'
-  #      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'true'
-  #    ports:
-  #      - "8081:8080"
-  #    volumes:
-  #      - ./etl_pipeline/dags:/opt/airflow/dags
-  #      - ./data:/opt/airflow/data
-  #      - airflow_logs:/opt/airflow/logs
-  #    command: >
-  #      bash -c "
-  #        airflow db init &&
-  #        airflow db upgrade &&
-  #        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
-  #        airflow webserver & airflow scheduler
-  #      "
-  #    restart: always
-  #    healthcheck:
-  #      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
-  #      interval: 30s
-  #      timeout: 30s
-  #      retries: 5
-  #      start_period: 30s
-#      networks:
-#        - networkPFE
+  airflow-scheduler:
+    image: apache/airflow:2.9.2
+    container_name: airflow-scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow_meta
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - E:\flavor-trend-flink-processor\dags:/opt/airflow/dags
+      - /var/run/docker.sock:/var/run/docker.sock
+      - E:\flavor-trend-flink-processor\ml:/opt/airflow/scripts/ml
+    networks:
+      - networkPFE
+    command: scheduler
+    healthcheck:
+      test: [ "CMD", "airflow", "jobs", "check", "--job-type", "SchedulerJob", "--local" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  airflow-webserver:
+      build:
+        context: .
+        dockerfile: airflow.Dockerfile
+      container_name: airflow-webserver
+      depends_on:
+        airflow-scheduler: # <-- Now waits for the scheduler to be healthy
+          condition: service_healthy
+      environment:
+        AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow_meta
+        AIRFLOW__CORE__EXECUTOR: LocalExecutor
+        AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+        AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+        AIRFLOW__DOCKER__HOST: "unix://var/run/docker.sock"
+      volumes:
+        - E:\flavor-trend-flink-processor\dags:/opt/airflow/dags
+        - /var/run/docker.sock:/var/run/docker.sock
+        - E:\flavor-trend-flink-processor\ml:/opt/airflow/scripts/ml
+      ports:
+        - "8080:8080"
+      networks:
+        - networkPFE
+      command: bash -c "airflow db upgrade && airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true && airflow webserver"
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.6.1
@@ -202,12 +212,19 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
+        python.fn-execution.memory.managed: true         # <-- ADD THIS
+        python.fn-execution.framework.memory.size: 256mb  # <-- ADD THIS
+        python.fn-execution.task.memory.size: 512mb       # <-- ADD THIS
+      - MLFLOW_TRACKING_URI=http://host.docker.internal:5000
     networks:
       - networkPFE
+    volumes:
+      - E:\flavor-trend-flink-processor:/opt/flink/project
 
   taskmanager:
-    image: flink:1.18
-    container_name: taskmanager
+    build:
+      context: ../flavor-trend-flink-processor
+      dockerfile: Dockerfile
     depends_on:
       - jobmanager
     command: taskmanager
@@ -215,9 +232,16 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 4
+        taskmanager.numberOfTaskSlots: 8
+        taskmanager.memory.framework.off-heap.size: 256mb
+        python.fn-execution.memory.managed: true        # <-- ADD THIS
+        python.fn-execution.framework.memory.size: 256mb  # <-- ADD THIS
+        python.fn-execution.task.memory.size: 512mb       # <-- ADD THIS
+      - MLFLOW_TRACKING_URI=http://host.docker.internal:5000
     networks:
       - networkPFE
+    volumes:
+      - E:\flavor-trend-flink-processor:/opt/flink/project
 
   superset:
     image: apache/superset:2.1.3
@@ -235,12 +259,37 @@ services:
     networks:
       - networkPFE
 
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.1
+    container_name: mlflow
+    depends_on:
+      - postgres
+    ports:
+      - "5000:5000"
+    environment:
+      - MLFLOW_BACKEND_STORE_URI=postgresql://airflow:airflow@postgres:5432/airflow
+      - MLFLOW_ARTIFACTS_DESTINATION=/mlflow/artifacts
+      - MLFLOW_SERVE_ARTIFACTS=true
+    volumes:
+      - mlflow_data:/mlflow/artifacts
+    networks:
+      - networkPFE
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri ${MLFLOW_BACKEND_STORE_URI}
+      --artifacts-destination ${MLFLOW_ARTIFACTS_DESTINATION}
+      --serve-artifacts
+    
+
 volumes:
   postgres_data:
   airflow_logs:
   kafka_data:
   kafka_connect_data:
   superset_home:
+  mlflow_data:
 
 networks:
   networkPFE:
