@@ -1,0 +1,29 @@
+{
+  "name": "debezium-postgres-order_reviews-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.dbname": "airflow",
+    "database.user": "airflow",
+    "database.password": "airflow",
+
+    "slot.name": "debezium_order_reviews",
+    "publication.name": "debezium_pub_order_reviews",
+    "plugin.name": "pgoutput",
+
+    "table.include.list": "public.order_reviews",
+    "topic.prefix": "postgres-order_reviews-",
+
+    "snapshot.mode": "always",
+    "include.schema.changes": "false",
+    "tombstones.on.delete": "false",
+
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false"
+  }
+}
