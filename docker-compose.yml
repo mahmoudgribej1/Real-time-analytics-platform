@@ -256,6 +256,7 @@ services:
       - "8088:8088"
     volumes:
       - superset_home:/app/superset_home
+      - ./superset_config.py:/app/pythonpath/superset_config.py:ro
     networks:
       - networkPFE
 
@@ -281,8 +282,54 @@ services:
       --backend-store-uri ${MLFLOW_BACKEND_STORE_URI}
       --artifacts-destination ${MLFLOW_ARTIFACTS_DESTINATION}
       --serve-artifacts
-    
+  webapi:
+    build: ./webapi
+    container_name: webapi
+    environment:
+      PG_DSN: postgresql://airflow:airflow@postgres:5432/airflow
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - networkPFE
 
+  notifier:
+    build: ./notifier
+    container_name: notifier
+    environment:
+      KAFKA_BOOTSTRAP: kafka:9092
+      TOPICS: "sla_violations,dynamic_sla_violations"
+      PG_DSN: postgresql://airflow:airflow@postgres:5432/airflow
+      WEBAPI_NOTIFY_URL: http://webapi:8000/api/notify
+    depends_on:
+      kafka:
+        condition: service_healthy
+      webapi:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - networkPFE
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    depends_on:
+      webapi:
+        condition: service_started
+    environment:
+      - VITE_API=http://webapi:8000
+    ports:
+      - "3000:80"
+    networks:
+      - networkPFE
 volumes:
   postgres_data:
   airflow_logs:

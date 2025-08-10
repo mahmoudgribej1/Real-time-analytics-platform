@@ -1,0 +1,17 @@
+# requirements-airflow.txt
+
+# Core Data Science Libraries
+pandas==2.2.2
+scikit-learn==1.4.2
+
+# Database Connector
+psycopg2-binary
+
+# Development Environment
+jupyterlab
+
+# ML Lifecycle Management
+mlflow==2.13.1
+
+# Data Generation
+Faker
