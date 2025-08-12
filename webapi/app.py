@@ -4,6 +4,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+import json
 
 PG_DSN = os.getenv("PG_DSN", "postgresql://airflow:airflow@postgres:5432/airflow")
 
@@ -90,6 +91,7 @@ async def ws(ws: WebSocket):
         clients.discard(ws)
 
 async def broadcast(message: dict):
+
     """Send a JSON message to all connected clients."""
     dead = []
     for c in clients:
@@ -100,9 +102,22 @@ async def broadcast(message: dict):
     for d in dead:
         clients.discard(d)
 
+async def _broadcast(title: str, typ: str = "SCENARIO", severity: str = "info", details: dict | None = None):
+    # Reuse the in-process websocket broadcaster (no HTTP hop)
+    payload = {
+        "id": 0,
+        "type": typ,
+        "severity": severity,
+        "title": title,
+        "details": details or {}
+    }
+    await broadcast(payload)
+
 async def toast(title: str, typ: str = "PLAYBOOK", severity: str = "info", details: dict | None = None):
     """Push a notification to the UI via WS."""
     await broadcast({"id": 0, "type": typ, "severity": severity, "title": title, "details": details or {}})
+
+
 
 # ------------------------------
 # KPI / data endpoints
@@ -283,3 +298,324 @@ async def trigger_surge(req: SurgeReq):
     msg = f"Surge set for {req.city}: x{req.multiplier} for {req.minutes}m"
     await toast(msg)
     return {"ok": True, "message": msg}
+
+# -------- Pressure endpoints --------
+@app.get("/api/pressure/top")
+async def pressure_top(minutes: int = 10, limit: int = 8):
+    q = """
+    WITH latest AS (
+      SELECT DISTINCT ON (city_name)
+             city_name, ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
+      FROM ops.city_pressure_minute
+      WHERE ts >= NOW() - make_interval(mins => $1::int)
+      ORDER BY city_name, ts DESC
+    )
+    SELECT *
+    FROM latest
+    ORDER BY pressure_score DESC NULLS LAST
+    LIMIT $2
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, minutes, limit)
+    return [dict(r) for r in rows]
+
+@app.get("/api/pressure/series")
+async def pressure_series(city: str, minutes: int = 120):
+    q = """
+    SELECT ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
+    FROM ops.city_pressure_minute
+    WHERE city_name = $1 AND ts >= NOW() - make_interval(mins => $2::int)
+    ORDER BY ts
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, city, minutes)
+    return [dict(r) for r in rows]
+
+# -------- Recommendations (rule-based for now) --------
+def _reason_for_surge(row: dict) -> str:
+    parts = []
+    if (row.get("available_couriers") or 0) <= 1: parts.append("low supply")
+    if (row.get("order_count") or 0) >= 50: parts.append("high demand")
+    if (row.get("demand_per_available") or 0) >= 2: parts.append("overloaded couriers")
+    return ", ".join(parts) or "elevated pressure"
+
+@app.get("/api/recommendations/list")
+async def recommendations_list(minutes: int = 10):
+    # Compute suggestions on the fly from latest pressure
+    q = """
+    WITH latest AS (
+      SELECT DISTINCT ON (city_name)
+             city_name, ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
+      FROM ops.city_pressure_minute
+      WHERE ts >= NOW() - make_interval(mins => $1::int)
+      ORDER BY city_name, ts DESC
+    )
+    SELECT *
+    FROM latest
+    WHERE pressure_score >= 75
+    ORDER BY pressure_score DESC
+    """
+    async with pool.acquire() as con:
+        rows = [dict(r) for r in await con.fetch(q, minutes)]
+    # Build surge suggestions
+    recs = []
+    for r in rows:
+        mult = 1.5 if r["pressure_score"] < 85 else 2.0
+        recs.append({
+            "city_name": r["city_name"],
+            "kind": "SURGE_CITY",
+            "score": float(r["pressure_score"]),
+            "rationale": _reason_for_surge(r),
+            "suggested_params": {"multiplier": mult, "minutes": 15}
+        })
+    return recs
+
+class RecAction(BaseModel):
+    city_name: str
+    kind: str
+    score: float
+    suggested_params: dict
+    user: str | None = "demo"
+
+@app.post("/api/recommendations/approve")
+async def recommendations_approve(rec: RecAction):
+    if rec.kind == "SURGE_CITY":
+        minutes = int(rec.suggested_params.get("minutes", 15))
+        mult    = float(rec.suggested_params.get("multiplier", 1.5))
+        # record recommendation as approved
+        async with pool.acquire() as con:
+            await con.execute("""
+              INSERT INTO ops.recommendations(city_name, kind, score, rationale, suggested_params, status, decided_at, decided_by)
+              VALUES ($1,$2,$3,$4,$5::jsonb,'approved', NOW(), $6)
+            """, rec.city_name, rec.kind, rec.score, "approved via UI",
+                              json.dumps(rec.suggested_params), rec.user)
+        # trigger surge using your existing action
+        # (reuse existing endpoint logic by calling into DB directly then toast)
+        await mute_or_surge("SURGE", rec.city_name, minutes, mult)
+        return {"ok": True}
+
+    # other kinds can be added later (THROTTLE_RESTAURANT, PRIORITIZE_ORDERS)
+    return {"ok": False, "message": "Unknown recommendation kind"}
+
+@app.post("/api/recommendations/dismiss")
+async def recommendations_dismiss(rec: RecAction):
+    async with pool.acquire() as con:
+        await con.execute("""
+          INSERT INTO ops.recommendations(city_name, kind, score, rationale, suggested_params, status, decided_at, decided_by)
+          VALUES ($1,$2,$3,$4,$5::jsonb,'dismissed', NOW(), $6)
+        """, rec.city_name, rec.kind, rec.score, "dismissed via UI",
+                          json.dumps(rec.suggested_params), rec.user)
+    # toast so the room sees it
+    await toast(f"Dismissed {rec.kind} for {rec.city_name}")
+    return {"ok": True}
+
+# helper used by approve (keeps same toast style as your actions)
+async def mute_or_surge(kind: str, city: str, minutes: int, mult: float):
+    if kind == "SURGE":
+        async with pool.acquire() as con:
+            await con.execute(
+                "INSERT INTO ops.surge_overrides(city_name, multiplier, until) "
+                "VALUES ($1,$2, NOW() + make_interval(mins => $3::int)) "
+                "ON CONFLICT (city_name) DO UPDATE SET multiplier=EXCLUDED.multiplier, until=EXCLUDED.until",
+                city, mult, minutes
+            )
+            await con.execute(
+                "INSERT INTO ops.actions_log(action, params, user_name, result) VALUES($1,$2::jsonb,$3,$4)",
+                "trigger_surge",
+                json.dumps({"city":city,"multiplier":mult,"minutes":minutes}),
+                "demo",
+                "recorded"
+            )
+        await toast(f"Surge set for {city}: x{mult} for {minutes}m")
+
+# -------- Incident Replay --------
+@app.get("/api/replay")
+async def replay(city: str, minutes: int = 120):
+    async with pool.acquire() as con:
+        pres = await con.fetch("""
+          SELECT ts, pressure_score FROM ops.city_pressure_minute
+          WHERE city_name = $1 AND ts >= NOW() - make_interval(mins => $2::int)
+          ORDER BY ts
+        """, city, minutes)
+        br = await con.fetch("""
+          SELECT ts, SUM(breaches)::int AS breaches
+          FROM ops.sla_breaches_per_minute
+          WHERE city_name=$1 AND ts >= NOW() - make_interval(mins => $2::int)
+          GROUP BY ts ORDER BY ts
+        """, city, minutes)
+        acts = await con.fetch("""
+          SELECT ts, action, params, result
+          FROM ops.actions_log
+          WHERE ts >= NOW() - make_interval(mins => $1::int)
+            AND ( (params->>'city') = $2 OR action IN ('mute_city','unmute_city','trigger_surge') )
+          ORDER BY ts
+        """, minutes, city)
+    return {
+        "pressure": [dict(r) for r in pres],
+        "breaches": [dict(r) for r in br],
+        "actions":  [ {"ts":r["ts"].isoformat(),"action":r["action"],"params":r["params"],"result":r["result"]} for r in acts ]
+    }
+
+class RainReq(BaseModel):
+    city: str           # 'Tunis' or '6'
+    on: bool = True
+    minutes: int = 30
+    user: str | None = "demo"
+
+class PromoReq(BaseModel):
+    city: str
+    factor: float = 1.5
+    minutes: int = 20
+    user: str | None = "demo"
+
+class OutageReq(BaseModel):
+    city: str
+    pct_offline: float = 0.3
+    minutes: int = 10
+    user: str | None = "demo"
+
+@app.get("/api/sim/list")
+async def sim_list():
+    async with pool.acquire() as con:
+        rows = await con.fetch(
+            "SELECT key, city_name, params, until FROM ops.simulation_flags WHERE until > NOW() ORDER BY until DESC")
+    return [dict(r) for r in rows]
+
+@app.post("/api/sim/rain")
+async def sim_rain(req: RainReq):
+    async with pool.acquire() as con:
+        await con.execute("""
+          INSERT INTO ops.simulation_flags(key, city_name, params, until)
+          VALUES ('rain',$1,$2::jsonb, NOW() + ($3::int) * INTERVAL '1 minute')
+          ON CONFLICT (key, city_name) DO UPDATE
+            SET params=EXCLUDED.params, until=EXCLUDED.until
+        """, req.city, json.dumps({"on": req.on}), req.minutes)
+        await con.execute(
+            "INSERT INTO ops.actions_log(action, params, user_name, result) VALUES($1,$2::jsonb,$3,$4)",
+            "sim_rain", json.dumps(req.model_dump()), req.user, "recorded"
+        )
+    await _broadcast(f"{'Started' if req.on else 'Stopped'} rain in {req.city} for {req.minutes}m")
+    return {"ok": True}
+
+@app.post("/api/sim/promo")
+async def sim_promo(req: PromoReq):
+    async with pool.acquire() as con:
+        await con.execute("""
+          INSERT INTO ops.simulation_flags(key, city_name, params, until)
+          VALUES ('promo',$1,$2::jsonb, NOW() + ($3::int) * INTERVAL '1 minute')
+          ON CONFLICT (key, city_name) DO UPDATE
+            SET params=EXCLUDED.params, until=EXCLUDED.until
+        """, req.city, json.dumps({"factor": req.factor}), req.minutes)
+        await con.execute(
+            "INSERT INTO ops.actions_log(action, params, user_name, result) VALUES($1,$2::jsonb,$3,$4)",
+            "sim_promo", json.dumps(req.model_dump()), req.user, "recorded"
+        )
+    await _broadcast(f"Promo in {req.city}: x{req.factor} for {req.minutes}m")
+    return {"ok": True}
+
+@app.post("/api/sim/outage")
+async def sim_outage(req: OutageReq):
+    async with pool.acquire() as con:
+        await con.execute("""
+          INSERT INTO ops.simulation_flags(key, city_name, params, until)
+          VALUES ('courier_outage',$1,$2::jsonb, NOW() + ($3::int) * INTERVAL '1 minute')
+          ON CONFLICT (key, city_name) DO UPDATE
+            SET params=EXCLUDED.params, until=EXCLUDED.until
+        """, req.city, json.dumps({"pct_offline": req.pct_offline}), req.minutes)
+        await con.execute(
+            "INSERT INTO ops.actions_log(action, params, user_name, result) VALUES($1,$2::jsonb,$3,$4)",
+            "sim_outage", json.dumps(req.model_dump()), req.user, "recorded"
+        )
+    await _broadcast(f"Courier outage in {req.city}: {int(req.pct_offline*100)}% for {req.minutes}m")
+    return {"ok": True}
+
+@app.get("/api/sentiment")
+async def api_sentiment(minutes: int = 60):
+    async with pool.acquire() as con:
+        rows = await con.fetch("""
+            WITH src AS (
+              SELECT
+                c.city_name,
+                orv.posted_at,
+                orv.rating,
+                orv.sentiment
+              FROM order_reviews      AS orv
+              JOIN orders             AS o  ON o.order_id      = orv.order_id
+              JOIN restaurants        AS r  ON r.restaurant_id = o.restaurant_id
+              JOIN cities             AS c  ON c.city_id       = r.city_id
+              WHERE orv.posted_at >= (NOW()::timestamp - ($1::int * interval '1 minute'))
+            )
+            SELECT
+              city_name,
+              COUNT(*)                                           AS reviews,
+              ROUND(AVG(rating)::numeric, 2)                     AS avg_rating,
+              SUM(CASE WHEN sentiment = 'positive' THEN 1 ELSE 0 END) AS pos,
+              SUM(CASE WHEN sentiment = 'negative' THEN 1 ELSE 0 END) AS neg
+            FROM src
+            GROUP BY city_name
+            ORDER BY reviews DESC
+        """, minutes)
+    return [dict(r) for r in rows]
+
+@app.get("/api/revenue/kpis")
+async def revenue_kpis(minutes: int = 60):
+    async with pool.acquire() as con:
+        # Completion timestamp = COALESCE(pickup_time, order_timestamp) + time_taken_minutes
+        gmv_window = await con.fetchval("""
+          SELECT COALESCE(SUM(total_price),0)
+          FROM orders
+          WHERE status='Completed'
+            AND (COALESCE(pickup_time, order_timestamp)
+                 + (COALESCE(time_taken_minutes,0) || ' minutes')::interval)
+                >= (NOW() - ($1::int * interval '1 minute'))
+        """, minutes)
+
+        orders_window = await con.fetchval("""
+          SELECT COUNT(*) FROM orders
+          WHERE status='Completed'
+            AND (COALESCE(pickup_time, order_timestamp)
+                 + (COALESCE(time_taken_minutes,0) || ' minutes')::interval)
+                >= (NOW() - ($1::int * interval '1 minute'))
+        """, minutes)
+
+        aov_window = (gmv_window / orders_window) if orders_window else 0.0
+
+        gmv_today = await con.fetchval("""
+          SELECT COALESCE(SUM(total_price),0)
+          FROM orders
+          WHERE status='Completed'
+            AND order_timestamp >= date_trunc('day', NOW())
+        """)
+        orders_today = await con.fetchval("""
+          SELECT COUNT(*) FROM orders
+          WHERE status='Completed'
+            AND order_timestamp >= date_trunc('day', NOW())
+        """)
+
+    return {
+        "gmv_window": float(gmv_window or 0),
+        "orders_window": int(orders_window or 0),
+        "aov_window": float(aov_window or 0),
+        "gmv_today": float(gmv_today or 0),
+        "orders_today": int(orders_today or 0),
+    }
+
+@app.get("/api/revenue/by_city")
+async def revenue_by_city(minutes: int = 60):
+    async with pool.acquire() as con:
+        rows = await con.fetch("""
+          SELECT c.city_name,
+                 COALESCE(SUM(o.total_price),0)::float AS gmv,
+                 COUNT(*) AS orders,
+                 (CASE WHEN COUNT(*)>0 THEN AVG(o.total_price)::float ELSE 0 END) AS aov
+          FROM orders o
+          JOIN cities c ON c.city_id = o.city_id
+          WHERE o.status='Completed'
+            AND (COALESCE(o.pickup_time, o.order_timestamp)
+                 + (COALESCE(o.time_taken_minutes,0) || ' minutes')::interval)
+                >= (NOW() - ($1::int * interval '1 minute'))
+          GROUP BY c.city_name
+          ORDER BY gmv DESC
+        """, minutes)
+    return [dict(r) for r in rows]
+

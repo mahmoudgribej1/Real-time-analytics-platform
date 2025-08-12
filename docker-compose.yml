@@ -232,7 +232,7 @@ services:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 8
+        taskmanager.numberOfTaskSlots: 16
         taskmanager.memory.framework.off-heap.size: 256mb
         python.fn-execution.memory.managed: true        # <-- ADD THIS
         python.fn-execution.framework.memory.size: 256mb  # <-- ADD THIS

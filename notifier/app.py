@@ -68,6 +68,41 @@ async def handle_topic(pool, topic: str, payload: dict):
                 last_update = NOW()
             """, payload.get("restaurant_id"), payload.get("city_name"), json.dumps(payload))
 
+        elif topic == "courier_features_live":
+            # existing upsert
+            await con.execute("""
+              INSERT INTO ops.courier_activity_ui(delivery_person_id, city_name, payload)
+              VALUES ($1, $2, $3::jsonb)
+              ON CONFLICT (delivery_person_id) DO UPDATE SET
+                city_name = EXCLUDED.city_name,
+                payload = EXCLUDED.payload,
+                last_update = NOW()
+            """, payload.get("delivery_person_id"), payload.get("city_name"), json.dumps(payload))
+            # NEW: append log for history
+            await con.execute("""
+              INSERT INTO ops.courier_activity_log(delivery_person_id, city_name, active_deliveries, payload)
+              VALUES ($1, $2, COALESCE(($3::jsonb->>'active_deliveries')::int, NULL), $3::jsonb)
+            """, payload.get("delivery_person_id"), payload.get("city_name"), json.dumps(payload))
+
+        elif topic == "restaurant_features_live":
+            # existing upsert
+            await con.execute("""
+                  INSERT INTO ops.restaurant_status_ui(restaurant_id, city_name, payload)
+                  VALUES ($1, $2, $3::jsonb)
+                  ON CONFLICT (restaurant_id) DO UPDATE SET
+                    city_name = EXCLUDED.city_name,
+                    payload = EXCLUDED.payload,
+                    last_update = NOW()
+                """, payload.get("restaurant_id"), payload.get("city_name"), json.dumps(payload))
+            # NEW: append log for history
+            await con.execute("""
+                  INSERT INTO ops.restaurant_status_log(restaurant_id, city_name, open, est_prep_time_min, payload)
+                  VALUES ($1, $2, COALESCE(($3::jsonb->>'open')::bool, NULL),
+                                COALESCE(($3::jsonb->>'est_prep_time_min')::int, NULL),
+                                $3::jsonb)
+                """, payload.get("restaurant_id"), payload.get("city_name"), json.dumps(payload))
+
+
 async def wait_for_topics():
     admin = AIOKafkaAdminClient(bootstrap_servers=KAFKA_BOOTSTRAP)
     await admin.start()

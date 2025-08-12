@@ -2,6 +2,15 @@
 import { useEffect, useState } from "react";
 import { NavLink, Routes, Route, useNavigate } from "react-router-dom";
 import axios from "axios";
+import PressureTop from "./PressureTop";
+import Recommendations from "./Recommendations";
+import Replay from "./Replay";
+import Scenarios from "./Scenarios";
+import SlaList from "./SlaList";
+import SentimentPanel from "./SentimentPanel";
+import { useLocation } from "react-router-dom";
+import RevenuePanel from "./RevenuePanel";
+import { readCache, writeCache } from "./cache";
 
 const API = import.meta.env.VITE_API || `http://${window.location.hostname}:8001`;
 const WS  = API.replace("http","ws") + "/ws";
@@ -119,17 +128,29 @@ function ActionBar({ onToast }) {
 }
 
 function OverviewPage() {
-    const [kpi, setKpi] = useState({ orders_per_min: 0, sla_today: 0, eta_mae_1h: 0 });
-    const [sla, setSla] = useState([]);
+    const [kpi, setKpi] = useState(
+        readCache("kpi", { orders_per_min: 0, sla_today: 0, eta_mae_1h: 0 })
+    );
+    const [sla, setSla] = useState(readCache("sla_list", []));
     const events = useWebSocket(WS);
-    const {toasts, push} = useLocalToasts();
+    const { toasts, push } = useLocalToasts();
 
     useEffect(() => {
+        let alive = true;
         const load = async () => {
-            const k = await axios.get(API + "/api/kpi"); setKpi(k.data);
-            const s = await axios.get(API + "/api/sla?limit=50"); setSla(s.data);
+            try {
+                const [k, s] = await Promise.all([
+                    fetch(`${API}/api/kpi`).then(r => r.json()),
+                    fetch(`${API}/api/sla?limit=50`).then(r => r.json()),
+                ]);
+                if (!alive) return;
+                setKpi(k); writeCache("kpi", k);
+                setSla(s); writeCache("sla_list", s);
+            } catch {}
         };
-        load(); const t = setInterval(load, 5000); return () => clearInterval(t);
+        load(); // immediate (no zeros)
+        const t = setInterval(load, 5000);
+        return () => { alive = false; clearInterval(t); };
     }, []);
 
     return (
@@ -140,35 +161,63 @@ function OverviewPage() {
             <h3>Live Alerts</h3>
             <div className="toasts">
                 {events.map((e, i) => (
-                    <div key={i} className={`toast ${e.severity || "info"}`}>
+                    <div
+                        key={i}
+                        className={`toast ${e.severity || "info"}`}
+                        onClick={() => {
+                            const city = e?.details?.city_name || e.city_name;
+                            if (city) window.location.href = `/replay?city=${encodeURIComponent(city)}`;
+                        }}
+                        style={{ cursor: (e?.details?.city_name || e.city_name) ? "pointer" : "default" }}
+                    >
                         <b>{e.title}</b>
+                        <div style={{ fontSize: 12, opacity: 0.85 }}>
+                            {e?.details?.order_id ? <>#{e.details.order_id} • </> : null}
+                            {e?.details?.city_name ? <>{e.details.city_name} • </> : null}
+                            {e?.details?.courier_name ? <>{e.details.courier_name} • </> : null}
+                            {typeof e?.details?.delay_minutes === "number" ? <>+{e.details.delay_minutes}m late</> : null}
+                        </div>
                     </div>
                 ))}
             </div>
+            <div className="grid2">
+                <PressureTop />
+                <Recommendations />
+            </div>
+            <div className="grid2">
+                <SentimentPanel />
+                <RevenuePanel />
+            </div>
 
-            <h3>SLA Violations</h3>
-            <SlaTable rows={sla} />
+            <h3 style={{display:"none"}}>SLA Violations</h3>
+            <SlaList rows={sla} />
 
             {/* local toasts overlay */}
             <div className="overlay-toasts">
                 {toasts.map(t=><div key={t.id} className={`toast ${t.kind}`}>{t.text}</div>)}
             </div>
+
+
         </>
     );
 }
 
 function DashboardsPage() {
-    // Use ?standalone=1 on Superset to hide the header/filters for embedding
+    const { search } = useLocation();
+    const q = new URLSearchParams(search);
+    const city = q.get("city") || "All Cities";
+
     const SLA = "http://localhost:8088/superset/dashboard/p/6eA72DQZKX8/?standalone=1";
     const ORD = "http://localhost:8088/superset/dashboard/p/yYzwLYeZxKA/?standalone=1";
+
     return (
         <>
             <div className="card">
-                <h3>SLA Dashboard</h3>
+                <h3>SLA Dashboard <span style={{fontWeight:400, opacity:.7}}>({city})</span></h3>
                 <iframe src={SLA} title="SLA" style={{width:"100%", height:"85vh", border:0, borderRadius:12}} />
             </div>
             <div className="card">
-                <h3>Orders per City</h3>
+                <h3>Orders per City <span style={{fontWeight:400, opacity:.7}}>({city})</span></h3>
                 <iframe src={ORD} title="Orders" style={{width:"100%", height:"85vh", border:0, borderRadius:12}} />
             </div>
         </>
@@ -207,6 +256,8 @@ export default function App() {
                     <NavLink to="/overview" className={({isActive})=>isActive?"active":""}>Overview</NavLink>
                     <NavLink to="/dashboards" className={({isActive})=>isActive?"active":""}>Dashboards</NavLink>
                     <NavLink to="/activity" className={({isActive})=>isActive?"active":""}>Activity</NavLink>
+                    <NavLink to="/replay" className={({isActive})=>isActive?"active":""}>Replay</NavLink>
+                    <NavLink to="/scenarios" className={({isActive})=>isActive?"active":""}>Scenarios</NavLink>
                 </div>
             </nav>
 
@@ -214,6 +265,8 @@ export default function App() {
                 <Route path="/overview" element={<OverviewPage/>} />
                 <Route path="/dashboards" element={<DashboardsPage/>} />
                 <Route path="/activity" element={<ActivityPage/>} />
+                <Route path="/replay" element={<Replay/>} />
+                <Route path="/scenarios" element={<Scenarios/>} />
             </Routes>
         </div>
     );

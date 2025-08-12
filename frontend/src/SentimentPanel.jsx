@@ -1,0 +1,245 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+    ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid,
+    PieChart, Pie, Cell,
+} from "recharts";
+import { useNavigate } from "react-router-dom";
+import { readCache, writeCache } from "./cache";
+
+
+const API = import.meta.env.VITE_API || `http://${window.location.hostname}:8001`;
+
+// simple, readable colors
+const POS_COLOR = "#22c55e";
+const NEG_COLOR = "#ef4444";
+
+function kpi(sum, key) { return sum?.[key] ?? 0; }
+
+export default function SentimentPanel() {
+    const [minutes, setMinutes] = useState(60);
+    const cacheKey = `sentiment_${minutes}`;
+    const [sortBy, setSortBy] = useState("positivity"); // 'positivity' | 'reviews'
+    const [limit, setLimit] = useState(12);
+    const [rows, setRows] = useState(readCache(cacheKey, []));
+    const [summary, setSummary] = useState(readCache(`${cacheKey}_summary`, { total:0, posRate:0, avg:0 }));
+    const [err, setErr] = useState("");
+
+    const load = async () => {
+        try {
+            setErr("");
+            const r = await fetch(`${API}/api/sentiment?minutes=${minutes}`, { cache: "no-store" });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            const data = await r.json();
+            const safe = (Array.isArray(data) ? data : [])
+                .map(d => ({
+                    city_name: d.city_name,
+                    reviews: Number(d.reviews) || 0,
+                    pos: Number(d.pos) || 0,
+                    neg: Number(d.neg) || 0,
+                    avg_rating: Number(d.avg_rating) || 0,
+                }))
+                .filter(d => d.reviews > 0);
+            setRows(safe);
+        } catch (e) {
+            setRows([]);
+            setErr(String(e));
+            // console.error("Sentiment fetch failed", e);
+        }
+    };
+
+    useEffect(() => {
+        let alive = true;
+        const load = async () => {
+            try {
+                const data = await (await fetch(`${API}/api/sentiment?minutes=${minutes}`)).json();
+                if (!alive) return;
+                setRows(data);
+                writeCache(cacheKey, data);
+                // recompute summary
+                const total = data.reduce((a,b)=>a+b.reviews,0);
+                const pos = data.reduce((a,b)=>a+b.pos,0);
+                const neg = data.reduce((a,b)=>a+b.neg,0);
+                const avg = total ? (data.reduce((a,b)=>a+b.avg_rating*b.reviews,0)/total) : 0;
+                const posRate = total ? Math.round((pos/(pos+neg))*100) : 0;
+                const sum = { total, posRate, avg };
+                setSummary(sum);
+                writeCache(`${cacheKey}_summary`, sum);
+            } catch {}
+        };
+        load();
+        const t = setInterval(load, 10000);
+        return () => { alive = false; clearInterval(t); };
+    }, [minutes]);
+
+    const enriched = useMemo(() => {
+        return rows.map(r => ({
+            ...r,
+            posPct: r.reviews ? (r.pos * 100) / r.reviews : 0,
+        }));
+    }, [rows]);
+
+    const totals = useMemo(() => {
+        return enriched.reduce((acc, r) => {
+            acc.reviews += r.reviews;
+            acc.pos += r.pos;
+            acc.neg += r.neg;
+            acc.ratingSum += r.avg_rating * r.reviews;
+            return acc;
+        }, { reviews: 0, pos: 0, neg: 0, ratingSum: 0 });
+    }, [enriched]);
+
+    const overallAvg = totals.reviews ? (totals.ratingSum / totals.reviews) : 0;
+    const overallPosPct = totals.reviews ? Math.round((totals.pos * 100) / totals.reviews) : 0;
+
+    const sorted = useMemo(() => {
+        const copy = [...enriched];
+        if (sortBy === "reviews") {
+            copy.sort((a,b) => b.reviews - a.reviews);
+        } else {
+            copy.sort((a,b) => b.posPct - a.posPct);
+        }
+        return copy.slice(0, limit || copy.length);
+    }, [enriched, sortBy, limit]);
+
+    // Recharts data for pie & bars
+    const pieData = [
+        { name: "Positive", value: totals.pos, fill: POS_COLOR },
+        { name: "Negative", value: totals.neg, fill: NEG_COLOR },
+    ];
+    const barData = sorted.map(r => ({ name: r.city_name, Positive: r.pos, Negative: r.neg }));
+
+    // optional deep link to Superset with a city filter (adjust URL id/key if needed)
+    const navigate = useNavigate();
+    const openSupersetCity = (city) => {
+        navigate(`/dashboards?city=${encodeURIComponent(city)}`);
+    };
+
+    return (
+        <div className="card">
+            <div className="sentiment-header">
+                <h3>Customer Sentiment</h3>
+                <div className="sentiment-controls">
+                    <label>
+                        Window:
+                        <select value={minutes} onChange={e => setMinutes(+e.target.value)}>
+                            {[30, 60, 120, 240].map(m => <option key={m} value={m}>{m}m</option>)}
+                        </select>
+                    </label>
+                    <label>
+                        Sort by:
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                            <option value="positivity">% Positive</option>
+                            <option value="reviews">Reviews</option>
+                        </select>
+                    </label>
+                    <label>
+                        Top:
+                        <select value={limit} onChange={e => setLimit(+e.target.value)}>
+                            {[6, 8, 12, 20].map(n => <option key={n} value={n}>{n}</option>)}
+                            <option value={0}>All</option>
+                        </select>
+                    </label>
+                </div>
+            </div>
+
+            {err && <div className="note error">Error: {err}</div>}
+
+            {/* KPI tiles */}
+            <div className="grid sentiment-kpis">
+                <div className="card mini">
+                    <div>Total reviews</div>
+                    <b>{totals.reviews}</b>
+                </div>
+                <div className="card mini">
+                    <div>Overall positivity</div>
+                    <b>{overallPosPct}%</b>
+                    <div className="bar">
+                        <div className="bar-in" style={{ width: `${overallPosPct}%`, background: POS_COLOR }} />
+                    </div>
+                </div>
+                <div className="card mini">
+                    <div>Avg rating</div>
+                    <b>{overallAvg.toFixed(2)} ★</b>
+                </div>
+            </div>
+
+            {!enriched.length ? (
+                <div>No recent reviews.</div>
+            ) : (
+                <>
+                    <div className="grid2 sentiment-charts">
+                        {/* Donut */}
+                        <div className="card">
+                            <h4>Overall (last {minutes}m)</h4>
+                            <ResponsiveContainer width="100%" height={220}>
+                                <PieChart>
+                                    <Pie
+                                        data={pieData}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        innerRadius={60}
+                                        outerRadius={90}
+                                        isAnimationActive={false}
+                                    >
+                                        {pieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                                    </Pie>
+                                    <Legend />
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* Horizontal stacked bars per city */}
+                        <div className="card">
+                            <h4>Cities (stacked Pos/Neg)</h4>
+                            <ResponsiveContainer width="100%" height={280}>
+                                <BarChart data={barData} layout="vertical" margin={{ left: 80 }}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis type="number" />
+                                    <YAxis type="category" dataKey="name" width={100} />
+                                    <Tooltip />
+                                    <Legend />
+                                    <Bar dataKey="Positive" stackId="a" fill={POS_COLOR} />
+                                    <Bar dataKey="Negative" stackId="a" fill={NEG_COLOR} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Compact table with inline % bars and link to drill-down */}
+                    <div className="card">
+                        <h4>Details</h4>
+                        <table className="table">
+                            <thead>
+                            <tr>
+                                <th>City</th><th>Reviews</th><th>Avg ★</th><th>% Pos</th><th></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {sorted.map((r, i) => {
+                                const pct = r.reviews ? Math.round((r.pos * 100) / r.reviews) : 0;
+                                return (
+                                    <tr key={i} className={pct >= 65 ? "ok" : pct < 45 ? "crit" : ""}>
+                                        <td>{r.city_name}</td>
+                                        <td>{r.reviews}</td>
+                                        <td>{r.avg_rating.toFixed(2)}</td>
+                                        <td style={{ minWidth: 160 }}>
+                                            <div className="bar">
+                                                <div className="bar-in" style={{ width: `${pct}%`, background: POS_COLOR }} />
+                                            </div>
+                                            <div style={{ fontSize: 12, opacity: .75 }}>{pct}%</div>
+                                        </td>
+                                        <td style={{ textAlign: "right" }}>
+                                            <button className="btn" onClick={() => openSupersetCity(r.city_name)}>Open in dashboard</button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            </tbody>
+                        </table>
+                    </div>
+                </>
+            )}
+        </div>
+    );
+}
