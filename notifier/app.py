@@ -48,25 +48,6 @@ async def handle_topic(pool, topic: str, payload: dict):
                 event_time = NOW()
             """, payload.get("order_id"), payload.get("city_name"), json.dumps(payload))
 
-        elif topic == "courier_features_live":
-            await con.execute("""
-              INSERT INTO ops.courier_activity_ui(delivery_person_id, city_name, payload)
-              VALUES ($1, $2, $3::jsonb)
-              ON CONFLICT (delivery_person_id) DO UPDATE SET
-                city_name = EXCLUDED.city_name,
-                payload = EXCLUDED.payload,
-                last_update = NOW()
-            """, payload.get("delivery_person_id"), payload.get("city_name"), json.dumps(payload))
-
-        elif topic == "restaurant_features_live":
-            await con.execute("""
-              INSERT INTO ops.restaurant_status_ui(restaurant_id, city_name, payload)
-              VALUES ($1, $2, $3::jsonb)
-              ON CONFLICT (restaurant_id) DO UPDATE SET
-                city_name = EXCLUDED.city_name,
-                payload = EXCLUDED.payload,
-                last_update = NOW()
-            """, payload.get("restaurant_id"), payload.get("city_name"), json.dumps(payload))
 
         elif topic == "courier_features_live":
             # existing upsert

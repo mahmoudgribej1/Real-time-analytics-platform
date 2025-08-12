@@ -89,7 +89,7 @@ button{ cursor:pointer }
 
 /* SECTIONS ---------------------------------------------------------------- */
 .grid2{ display:grid; grid-template-columns: 1.6fr .9fr; gap:14px; align-items:start; }
-.row2{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+.row2{ display:grid; grid-template-columns: 1.35fr 1fr; gap:14px; }
 .full{ margin-top:14px; }
 
 /* TABLES ------------------------------------------------------------------ */
@@ -141,6 +141,15 @@ select, input{
 /* CHART TWEAKS (recharts) ------------------------------------------------- */
 .recharts-cartesian-grid-horizontal line,
 .recharts-cartesian-grid-vertical line{ stroke: var(--grid); }
+/* Axis labels/ticks follow the theme instead of black */
+.recharts-text { fill: var(--muted) !important; }
+
+/* Optional: lighten axis lines if shown */
+.recharts-cartesian-axis line,
+.recharts-cartesian-axis .recharts-cartesian-axis-line {
+    stroke: var(--grid);
+}
+
 .card .recharts-default-tooltip{
     background: var(--surface-1) !important;
     border:1px solid var(--border) !important;
@@ -157,3 +166,22 @@ select, input{
     .grid2, .row2{ grid-template-columns: 1fr; }
     .kpi-grid{ grid-template-columns: 1fr; }
 }
+/* === Additions for mini tiles, sentiment, and overlay toasts ============== */
+.grid{ display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+.card.mini{ display:flex; align-items:center; justify-content:space-between; }
+
+.sentiment-header{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; }
+.sentiment-controls{ display:flex; gap:12px; align-items:center; color:var(--muted); }
+.sentiment-kpis .bar{ height:8px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; margin-top:6px; overflow:hidden; }
+.sentiment-charts{ display:grid; grid-template-columns: 1.1fr 1.6fr; gap:14px; }
+.bar{ height:10px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; overflow:hidden; }
+.bar-in{ height:100%; }
+
+.overlay-toasts{
+    position: fixed; right: 16px; bottom: 16px; z-index: 1000;
+    display:flex; flex-direction:column; gap:8px; width: min(360px, 90vw);
+}
+
+
+
+

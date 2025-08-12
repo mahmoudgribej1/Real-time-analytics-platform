@@ -12,7 +12,7 @@ import ThemeToggle from "./ThemeToggle";
 
 /* --------------------------- CONFIG --------------------------- */
 const API = import.meta.env.VITE_API || `http://${window.location.hostname}:8001`;
-const WS  = API.replace("http","ws") + "/ws";
+const WS  = API.replace(/^http/, "ws") + "/ws";
 
 /* ------------------------ SHARED HELPERS ---------------------- */
 const cache = {
@@ -165,7 +165,7 @@ function OverviewPage() {
 
     const [kpi, setKpi] = useState(LAST_GOOD.kpi || goodCached || null);
     const [sla, setSla] = useState(LAST_GOOD.sla?.length ? LAST_GOOD.sla : cache.get("sla", []));
-    const [loading, setLoading] = useState(! (LAST_GOOD.kpi || goodCached));
+    const [loading, setLoading] = useState(!(LAST_GOOD.kpi || goodCached));
     const emptyHits = useRef(0);
 
     const events = useWebSocket(WS);
@@ -204,7 +204,7 @@ function OverviewPage() {
                         // If we already have KPI, ignore empties; keep last good
                         if (emptyHits.current < 3) return;
 
-                        // If consistently empty (3+ ticks), keep last good & keep loading=false
+                        // If consistently empty (3+ ticks), keep last good
                         return;
                     }
 
@@ -305,7 +305,15 @@ function DashboardsPage() {
 
 function ActivityPage() {
     const [rows, setRows] = useState([]);
-    useEffect(()=>{ const load=async()=> setRows(await (await fetch(`${API}/api/actions/log?limit=50`)).json()); load(); const t=setInterval(load,5000); return ()=>clearInterval(t); },[]);
+    useEffect(()=>{
+        const load = async () => {
+            const r = await fetch(`${API}/api/actions/log?limit=50`);
+            setRows(await r.json());
+        };
+        load();
+        const t=setInterval(load,5000);
+        return ()=>clearInterval(t);
+    },[]);
     return (
         <div className="card">
             <h3>Activity Log</h3>
@@ -327,7 +335,8 @@ function ActivityPage() {
 /* ------------------------ APP SHELL --------------------------- */
 export default function App() {
     const navigate = useNavigate();
-    useEffect(()=>{ if (location.pathname==="/") navigate("/overview"); },[]);
+    const { pathname } = useLocation();
+    useEffect(()=>{ if (pathname==="/") navigate("/overview"); },[pathname, navigate]);
     return (
         <div className="wrap">
             <nav className="nav">

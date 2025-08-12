@@ -6,14 +6,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import { readCache, writeCache } from "./cache";
 
-
 const API = import.meta.env.VITE_API || `http://${window.location.hostname}:8001`;
 
 // simple, readable colors
 const POS_COLOR = "#22c55e";
 const NEG_COLOR = "#ef4444";
-
-function kpi(sum, key) { return sum?.[key] ?? 0; }
 
 export default function SentimentPanel() {
     const [minutes, setMinutes] = useState(60);
@@ -24,47 +21,43 @@ export default function SentimentPanel() {
     const [summary, setSummary] = useState(readCache(`${cacheKey}_summary`, { total:0, posRate:0, avg:0 }));
     const [err, setErr] = useState("");
 
-    const load = async () => {
-        try {
-            setErr("");
-            const r = await fetch(`${API}/api/sentiment?minutes=${minutes}`, { cache: "no-store" });
-            if (!r.ok) throw new Error(`HTTP ${r.status}`);
-            const data = await r.json();
-            const safe = (Array.isArray(data) ? data : [])
-                .map(d => ({
-                    city_name: d.city_name,
-                    reviews: Number(d.reviews) || 0,
-                    pos: Number(d.pos) || 0,
-                    neg: Number(d.neg) || 0,
-                    avg_rating: Number(d.avg_rating) || 0,
-                }))
-                .filter(d => d.reviews > 0);
-            setRows(safe);
-        } catch (e) {
-            setRows([]);
-            setErr(String(e));
-            // console.error("Sentiment fetch failed", e);
-        }
-    };
-
     useEffect(() => {
         let alive = true;
         const load = async () => {
             try {
-                const data = await (await fetch(`${API}/api/sentiment?minutes=${minutes}`)).json();
+                setErr("");
+                const r = await fetch(`${API}/api/sentiment?minutes=${minutes}`, { cache: "no-store" });
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const data = await r.json();
                 if (!alive) return;
-                setRows(data);
-                writeCache(cacheKey, data);
+
+                const safe = (Array.isArray(data) ? data : [])
+                    .map(d => ({
+                        city_name: d.city_name,
+                        reviews: Number(d.reviews) || 0,
+                        pos: Number(d.pos) || 0,
+                        neg: Number(d.neg) || 0,
+                        avg_rating: Number(d.avg_rating) || 0,
+                    }))
+                    .filter(d => d.reviews > 0);
+
+                setRows(safe);
+                writeCache(cacheKey, safe);
+
                 // recompute summary
-                const total = data.reduce((a,b)=>a+b.reviews,0);
-                const pos = data.reduce((a,b)=>a+b.pos,0);
-                const neg = data.reduce((a,b)=>a+b.neg,0);
-                const avg = total ? (data.reduce((a,b)=>a+b.avg_rating*b.reviews,0)/total) : 0;
+                const total = safe.reduce((a,b)=>a+b.reviews,0);
+                const pos = safe.reduce((a,b)=>a+b.pos,0);
+                const neg = safe.reduce((a,b)=>a+b.neg,0);
+                const avg = total ? (safe.reduce((a,b)=>a+b.avg_rating*b.reviews,0)/total) : 0;
                 const posRate = total ? Math.round((pos/(pos+neg))*100) : 0;
                 const sum = { total, posRate, avg };
                 setSummary(sum);
                 writeCache(`${cacheKey}_summary`, sum);
-            } catch {}
+            } catch (e) {
+                if (!alive) return;
+                setRows([]);
+                setErr(String(e));
+            }
         };
         load();
         const t = setInterval(load, 10000);
@@ -108,7 +101,6 @@ export default function SentimentPanel() {
     ];
     const barData = sorted.map(r => ({ name: r.city_name, Positive: r.pos, Negative: r.neg }));
 
-    // optional deep link to Superset with a city filter (adjust URL id/key if needed)
     const navigate = useNavigate();
     const openSupersetCity = (city) => {
         navigate(`/dashboards?city=${encodeURIComponent(city)}`);
@@ -192,21 +184,21 @@ export default function SentimentPanel() {
                         {/* Horizontal stacked bars per city */}
                         <div className="card">
                             <h4>Cities (stacked Pos/Neg)</h4>
-                            <ResponsiveContainer width="100%" height={280}>
-                                <BarChart data={barData} layout="vertical" margin={{ left: 80 }}>
+                            <ResponsiveContainer width="100%" height={320}>
+                                <BarChart data={barData} layout="vertical" margin={{ left: 90, right: 8, top: 6 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis type="number" />
-                                    <YAxis type="category" dataKey="name" width={100} />
+                                    <XAxis type="number" tick={{ fill: 'var(--muted)', fontSize: 12 }} />
+                                    <YAxis type="category" dataKey="name" width={110} tick={{ fill: 'var(--muted)', fontSize: 12 }} />
                                     <Tooltip />
                                     <Legend />
-                                    <Bar dataKey="Positive" stackId="a" fill={POS_COLOR} />
-                                    <Bar dataKey="Negative" stackId="a" fill={NEG_COLOR} />
+                                    <Bar dataKey="Positive" stackId="a" fill="#22c55e" />
+                                    <Bar dataKey="Negative" stackId="a" fill="#ef4444" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
                     </div>
 
-                    {/* Compact table with inline % bars and link to drill-down */}
+                    {/* Compact table */}
                     <div className="card">
                         <h4>Details</h4>
                         <table className="table">
