@@ -100,6 +100,14 @@ export default function SentimentPanel() {
         { name: "Negative", value: totals.neg, fill: NEG_COLOR },
     ];
     const barData = sorted.map(r => ({ name: r.city_name, Positive: r.pos, Negative: r.neg }));
+    // --- tight domain + dynamic Y-axis width ---
+    const maxStack = Math.max(1, ...barData.map(d => (d.Positive || 0) + (d.Negative || 0)));
+    const xDomain  = [0, Math.ceil(maxStack * 1.05)];     // 5% headroom
+
+// rough width per label character so long names fit without giant padding
+    const maxLabelLen = Math.max(0, ...barData.map(d => (d.name?.length || 0)));
+    const yAxisWidth  = Math.min(130, Math.max(80, 7 * maxLabelLen));  // 80–130px
+
 
     const navigate = useNavigate();
     const openSupersetCity = (city) => {
@@ -184,17 +192,34 @@ export default function SentimentPanel() {
                         {/* Horizontal stacked bars per city */}
                         <div className="card">
                             <h4>Cities (stacked Pos/Neg)</h4>
-                            <ResponsiveContainer width="100%" height={320}>
-                                <BarChart data={barData} layout="vertical" margin={{ left: 90, right: 8, top: 6 }}>
+                            <ResponsiveContainer width="100%" height={360}>
+                                <BarChart
+                                    data={barData}
+                                    layout="vertical"
+                                    margin={{ left: 16, right: 8, top: 6 }}   // was 110,8,6
+                                    barCategoryGap="20%"
+                                >
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis type="number" tick={{ fill: 'var(--muted)', fontSize: 12 }} />
-                                    <YAxis type="category" dataKey="name" width={110} tick={{ fill: 'var(--muted)', fontSize: 12 }} />
+                                    <XAxis
+                                        type="number"
+                                        domain={xDomain}
+                                        tick={{ fill: 'var(--muted)', fontSize: 12 }}
+                                        tickLine={false}
+                                        allowDecimals={false}
+                                    />
+                                    <YAxis
+                                        type="category"
+                                        dataKey="name"
+                                        width={yAxisWidth}                        // was fixed 120
+                                        tick={{ fill: 'var(--muted)', fontSize: 12 }}
+                                        tickLine={false}
+                                    />
                                     <Tooltip />
-                                    <Legend />
                                     <Bar dataKey="Positive" stackId="a" fill="#22c55e" />
                                     <Bar dataKey="Negative" stackId="a" fill="#ef4444" />
                                 </BarChart>
                             </ResponsiveContainer>
+
                         </div>
                     </div>
 

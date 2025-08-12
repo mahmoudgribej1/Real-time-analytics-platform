@@ -57,20 +57,16 @@ export default function RevenuePanel() {
 
             <div className="card">
                 <h4>GMV by City (window)</h4>
-                <ResponsiveContainer width="100%" height={280}>
-                    <BarChart
-                        data={byCity}
-                        margin={{ left: 40, right: 10, top: 8, bottom: 0 }}
-                        barCategoryGap="25%"
-                    >
+                <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={byCity} margin={{ left: 40, right: 10, top: 8, bottom: 0 }} barCategoryGap="20%">
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="city_name" tick={{ fill: 'var(--muted)', fontSize: 12 }} />
-                        <YAxis tick={{ fill: 'var(--muted)', fontSize: 12 }} />
+                        <XAxis dataKey="city_name" tick={{ fill: 'var(--muted)', fontSize: 12 }} tickLine={false}/>
+                        <YAxis tick={{ fill: 'var(--muted)', fontSize: 12 }} tickLine={false}/>
                         <Tooltip formatter={(v)=>fmt(v)} />
-                        {/* use theme color instead of black and round the top corners */}
                         <Bar dataKey="gmv" fill="var(--primary)" radius={[6,6,0,0]} />
                     </BarChart>
                 </ResponsiveContainer>
+
             </div>
         </div>
     );

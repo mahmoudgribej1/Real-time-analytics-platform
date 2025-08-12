@@ -89,7 +89,26 @@ button{ cursor:pointer }
 
 /* SECTIONS ---------------------------------------------------------------- */
 .grid2{ display:grid; grid-template-columns: 1.6fr .9fr; gap:14px; align-items:start; }
-.row2{ display:grid; grid-template-columns: 1.35fr 1fr; gap:14px; }
+/* Wider left column for Sentiment */
+.row2{
+    display:grid;
+    grid-template-columns: 1.8fr 1fr;   /* was 1.35fr 1fr */
+    gap:16px;
+    align-items:start;
+}
+
+/* Inside Sentiment: bars get more room than the donut */
+.sentiment-charts{ display:grid; grid-template-columns: 1fr 1.8fr; gap:14px; }
+
+/* Chart text uses theme color (no black) */
+.recharts-text { fill: var(--muted) !important; }
+
+/* Make the Sentiment details list soak vertical space and scroll nicely */
+.sentiment-details{ max-height: 48vh; overflow:auto; }
+
+/* Slightly wider page so both columns breathe on large screens */
+.wrap{ max-width:1600px; }
+
 .full{ margin-top:14px; }
 
 /* TABLES ------------------------------------------------------------------ */
