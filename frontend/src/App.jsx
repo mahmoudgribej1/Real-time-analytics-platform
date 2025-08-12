@@ -1,6 +1,5 @@
-
-import { useEffect, useState } from "react";
-import { NavLink, Routes, Route, useNavigate } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { NavLink, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import PressureTop from "./PressureTop";
 import Recommendations from "./Recommendations";
@@ -8,13 +7,42 @@ import Replay from "./Replay";
 import Scenarios from "./Scenarios";
 import SlaList from "./SlaList";
 import SentimentPanel from "./SentimentPanel";
-import { useLocation } from "react-router-dom";
 import RevenuePanel from "./RevenuePanel";
-import { readCache, writeCache } from "./cache";
+import ThemeToggle from "./ThemeToggle";
 
+/* --------------------------- CONFIG --------------------------- */
 const API = import.meta.env.VITE_API || `http://${window.location.hostname}:8001`;
 const WS  = API.replace("http","ws") + "/ws";
 
+/* ------------------------ SHARED HELPERS ---------------------- */
+const cache = {
+    get(key, fallback) {
+        try {
+            const s = sessionStorage.getItem(key);
+            return s ? JSON.parse(s) : fallback;
+        } catch { return fallback; }
+    },
+    set(key, val) {
+        try { sessionStorage.setItem(key, JSON.stringify(val)); } catch {}
+    },
+    del(key) {
+        try { sessionStorage.removeItem(key); } catch {}
+    }
+};
+
+const isEmptyKpi = (k) =>
+    !k ||
+    ((k.orders_per_min || 0) === 0 &&
+        (k.sla_today || 0)     === 0 &&
+        ((k.eta_mae_1h || 0)   === 0));
+
+/* Keep last good snapshot in module scope so it survives route changes */
+const LAST_GOOD = {
+    kpi: null,  // { ...k, _ts }
+    sla: []
+};
+
+/* --------------------- REUSABLE HOOKS ------------------------- */
 function useWebSocket(url) {
     const [events, setEvents] = useState([]);
     useEffect(() => {
@@ -41,32 +69,33 @@ function useLocalToasts() {
     return { toasts, push };
 }
 
-function Tiles({ kpi }) {
+/* -------------------------- UI BITS --------------------------- */
+function Tiles({ kpi, loading }) {
+    const showSkel = loading || !kpi || !kpi._ts;
+    if (showSkel) {
+        return (
+            <div className="kpi-grid">
+                <div className="card kpi skeleton kpi-skel"></div>
+                <div className="card kpi skeleton kpi-skel"></div>
+                <div className="card kpi skeleton kpi-skel"></div>
+            </div>
+        );
+    }
     return (
-        <div className="grid">
-            <div className="card">Orders/min <b>{kpi.orders_per_min}</b></div>
-            <div className="card">SLA today <b>{kpi.sla_today}</b></div>
-            <div className="card">ETA MAE 1h <b>{kpi.eta_mae_1h}</b> min</div>
+        <div className="kpi-grid">
+            <div className="card kpi">
+                <div>Orders/min</div>
+                <b>{kpi.orders_per_min}</b>
+            </div>
+            <div className="card kpi">
+                <div>SLA today</div>
+                <b>{kpi.sla_today}</b>
+            </div>
+            <div className="card kpi">
+                <div>ETA MAE 1h</div>
+                <b>{kpi.eta_mae_1h}</b><span style={{marginLeft:6}}>min</span>
+            </div>
         </div>
-    );
-}
-
-function SlaTable({ rows }) {
-    return (
-        <table className="table">
-            <thead><tr><th>Order</th><th>City</th><th>Courier</th><th>Delay min</th><th>When</th></tr></thead>
-            <tbody>
-            {rows.map((r, i) => (
-                <tr key={i}>
-                    <td>{r.order_id}</td>
-                    <td>{r.city_name}</td>
-                    <td>{r.courier_name}</td>
-                    <td>{r.delay_minutes}</td>
-                    <td>{new Date(r.created_at).toLocaleTimeString()}</td>
-                </tr>
-            ))}
-            </tbody>
-        </table>
     );
 }
 
@@ -127,77 +156,127 @@ function ActionBar({ onToast }) {
     );
 }
 
+/* ------------------------ PAGES ------------------------------- */
 function OverviewPage() {
-    const [kpi, setKpi] = useState(
-        readCache("kpi", { orders_per_min: 0, sla_today: 0, eta_mae_1h: 0 })
-    );
-    const [sla, setSla] = useState(readCache("sla_list", []));
+    // sanitize old bad cache (zeros)
+    const cached = cache.get("kpi", null);
+    const goodCached = cached && !isEmptyKpi(cached) ? cached : null;
+    if (cached && !goodCached) cache.del("kpi");
+
+    const [kpi, setKpi] = useState(LAST_GOOD.kpi || goodCached || null);
+    const [sla, setSla] = useState(LAST_GOOD.sla?.length ? LAST_GOOD.sla : cache.get("sla", []));
+    const [loading, setLoading] = useState(! (LAST_GOOD.kpi || goodCached));
+    const emptyHits = useRef(0);
+
     const events = useWebSocket(WS);
     const { toasts, push } = useLocalToasts();
 
     useEffect(() => {
         let alive = true;
+
         const load = async () => {
             try {
-                const [k, s] = await Promise.all([
-                    fetch(`${API}/api/kpi`).then(r => r.json()),
-                    fetch(`${API}/api/sla?limit=50`).then(r => r.json()),
+                const [kRes, sRes] = await Promise.allSettled([
+                    fetch(API + "/api/kpi"),
+                    fetch(API + "/api/sla?limit=50"),
                 ]);
+
                 if (!alive) return;
-                setKpi(k); writeCache("kpi", k);
-                setSla(s); writeCache("sla_list", s);
-            } catch {}
+
+                // SLA can update independently
+                if (sRes.status === "fulfilled") {
+                    const s = await sRes.value.json();
+                    setSla(s);
+                    LAST_GOOD.sla = s;
+                    cache.set("sla", s);
+                }
+
+                if (kRes.status === "fulfilled") {
+                    const k = await kRes.value.json();
+                    const looksEmpty = isEmptyKpi(k);
+
+                    if (looksEmpty) {
+                        emptyHits.current += 1;
+
+                        // If we've never shown KPI yet, keep skeleton
+                        if (!kpi) return;
+
+                        // If we already have KPI, ignore empties; keep last good
+                        if (emptyHits.current < 3) return;
+
+                        // If consistently empty (3+ ticks), keep last good & keep loading=false
+                        return;
+                    }
+
+                    emptyHits.current = 0;
+                    const kWithTs = { ...k, _ts: Date.now() };
+
+                    setKpi(kWithTs);
+                    LAST_GOOD.kpi = kWithTs;
+                    cache.set("kpi", kWithTs);
+                    setLoading(false);
+                }
+            } catch {
+                // keep whatever we have
+            }
         };
-        load(); // immediate (no zeros)
+
+        // initial + poll
+        load();
         const t = setInterval(load, 5000);
-        return () => { alive = false; clearInterval(t); };
-    }, []);
+
+        // refresh immediately when tab becomes visible (helps after navigation)
+        const onVis = () => { if (document.visibilityState === "visible") load(); };
+        document.addEventListener("visibilitychange", onVis);
+
+        return () => {
+            alive = false;
+            clearInterval(t);
+            document.removeEventListener("visibilitychange", onVis);
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // run once per mount
 
     return (
         <>
-            <Tiles kpi={kpi} />
+            <Tiles kpi={kpi} loading={loading} />
             <ActionBar onToast={push} />
 
             <h3>Live Alerts</h3>
             <div className="toasts">
                 {events.map((e, i) => (
-                    <div
-                        key={i}
-                        className={`toast ${e.severity || "info"}`}
-                        onClick={() => {
-                            const city = e?.details?.city_name || e.city_name;
-                            if (city) window.location.href = `/replay?city=${encodeURIComponent(city)}`;
-                        }}
-                        style={{ cursor: (e?.details?.city_name || e.city_name) ? "pointer" : "default" }}
-                    >
+                    <div key={i} className={`toast ${e.severity || "info"}`}>
                         <b>{e.title}</b>
-                        <div style={{ fontSize: 12, opacity: 0.85 }}>
-                            {e?.details?.order_id ? <>#{e.details.order_id} • </> : null}
-                            {e?.details?.city_name ? <>{e.details.city_name} • </> : null}
-                            {e?.details?.courier_name ? <>{e.details.courier_name} • </> : null}
-                            {typeof e?.details?.delay_minutes === "number" ? <>+{e.details.delay_minutes}m late</> : null}
-                        </div>
+                        {e.details ? (
+                            <div style={{ fontSize: 12, opacity: 0.8, marginTop: 4 }}>
+                                {e.details.city_name ? `${e.details.city_name} — ` : ""}
+                                {e.details.courier_name ? `Courier ${e.details.courier_name} — ` : ""}
+                                {typeof e.details.delay_minutes === "number" ? `${e.details.delay_minutes}m late` : ""}
+                            </div>
+                        ) : null}
                     </div>
                 ))}
             </div>
+
             <div className="grid2">
                 <PressureTop />
                 <Recommendations />
             </div>
-            <div className="grid2">
-                <SentimentPanel />
-                <RevenuePanel />
+
+            <div className="row2 full">
+                <div className="card"><SentimentPanel /></div>
+                <div className="card"><RevenuePanel /></div>
             </div>
 
-            <h3 style={{display:"none"}}>SLA Violations</h3>
-            <SlaList rows={sla} />
+            <div className="full">
+                <SlaList rows={sla} />
+            </div>
 
-            {/* local toasts overlay */}
             <div className="overlay-toasts">
-                {toasts.map(t=><div key={t.id} className={`toast ${t.kind}`}>{t.text}</div>)}
+                {toasts.map((t) => (
+                    <div key={t.id} className={`toast ${t.kind}`}>{t.text}</div>
+                ))}
             </div>
-
-
         </>
     );
 }
@@ -245,12 +324,14 @@ function ActivityPage() {
     );
 }
 
+/* ------------------------ APP SHELL --------------------------- */
 export default function App() {
     const navigate = useNavigate();
-    useEffect(()=>{ /* default route */ if (location.pathname==="/") navigate("/overview"); },[]);
+    useEffect(()=>{ if (location.pathname==="/") navigate("/overview"); },[]);
     return (
         <div className="wrap">
             <nav className="nav">
+                <ThemeToggle />
                 <div className="brand">Ops Command Center</div>
                 <div className="links">
                     <NavLink to="/overview" className={({isActive})=>isActive?"active":""}>Overview</NavLink>
