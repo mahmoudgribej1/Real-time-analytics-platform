@@ -5,6 +5,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import json
+import math
+from datetime import datetime
 
 PG_DSN = os.getenv("PG_DSN", "postgresql://airflow:airflow@postgres:5432/airflow")
 
@@ -73,6 +75,146 @@ class SurgeReq(BaseModel):
     multiplier: float = 2.0
     minutes: int = 15
     user: str | None = "demo"
+
+# --- add model ---
+class SimEstimateReq(BaseModel):
+    city: str
+    promo_factor: float = 1.0    # e.g., 1.5 for +50% demand
+    outage_pct: float = 0.0      # e.g., 0.3 for 30% fewer couriers
+    rain_on: bool = False
+    minutes_window: int = 120
+
+def _clamp(x, lo, hi): return max(lo, min(hi, x))
+
+async def _avg_breaches_per_min(con, city: str, mins: int = 30) -> float:
+    q = """
+      SELECT COALESCE(AVG(breaches)::float, 0)
+      FROM ops.sla_breaches_per_minute
+      WHERE city_name=$1 AND ts >= NOW() - make_interval(mins => $2::int)
+    """
+    v = await con.fetchval(q, city, mins)
+    return float(v or 0.0)
+
+async def _latest_pressure_row(con, city: str, window: int):
+    q = """
+      SELECT ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
+      FROM ops.city_pressure_minute
+      WHERE city_name = $1 AND ts >= NOW() - make_interval(mins => $2::int)
+      ORDER BY ts DESC
+      LIMIT 1
+    """
+    r = await con.fetchrow(q, city, window)
+    if not r:
+        return None
+    return dict(r)
+
+async def _eta_typical(city: str, rain: bool) -> float:
+    """
+    Try MLflow ETA model; fall back to a reasonable default if not available.
+    """
+    try:
+        import mlflow.pyfunc  # type: ignore
+        import pandas as pd   # type: ignore
+    except Exception:
+        # fallback ~ 25 min typical
+        return 25.0
+
+    global _model
+    try:
+        _model  # noqa: F821
+    except NameError:
+        try:
+            _model = mlflow.pyfunc.load_model("models:/eta_model/Production")
+        except Exception:
+            return 25.0
+
+    df = pd.DataFrame([{
+        "distance_km": 3.0,
+        "items_count": 3,
+        "is_raining": 1 if rain else 0,
+        "hour_of_day": datetime.now().hour,
+        "city_name": city
+    }])
+    try:
+        y = _model.predict(df)
+        return float(y[0])
+    except Exception:
+        return 25.0
+
+@app.post("/api/sim/estimate")
+async def sim_estimate(req: SimEstimateReq):
+    async with pool.acquire() as con:
+        base = await _latest_pressure_row(con, req.city, req.minutes_window)
+        if not base:
+            raise HTTPException(status_code=404, detail="No recent pressure metrics for city.")
+        base_bpm = await _avg_breaches_per_min(con, req.city, 30)
+
+    # Baseline values
+    b_press = float(base.get("pressure_score") or 0.0)
+    b_ord   = float(base.get("order_count") or 0.0)
+    b_avail = float(base.get("available_couriers") or 0.0)
+    b_dpa   = float(base.get("demand_per_available") or (b_ord / (b_avail or 1)))
+    b_adm   = float(base.get("avg_delivery_time") or 25.0)  # minutes
+
+    # What-if
+    n_ord   = b_ord * max(0.1, req.promo_factor)
+    n_avail = b_avail * (1.0 - _clamp(req.outage_pct, 0.0, 0.95))
+    n_avail = max(1.0, n_avail)  # avoid div by zero
+    n_dpa   = n_ord / n_avail
+
+    # Pressure change: ~18 pts per doubling of DPA, +8 if raining
+    # (18 ~= aggressive but sane; tune later)
+    ratio = max(0.25, n_dpa / max(0.25, b_dpa))
+    delta_from_dpa = 18.0 * (math.log(ratio, 2))
+    delta_from_rain = 8.0 if req.rain_on else 0.0
+    n_press = _clamp(b_press + delta_from_dpa + delta_from_rain, 0.0, 100.0)
+
+    # Avg delivery time: scale by pressure uplift and rain penalty (~8%)
+    # pressure_scale ~ 1 + 0.25 * (Δpressure/100)
+    pressure_scale = 1.0 + 0.25 * ((n_press - b_press) / 100.0)
+    rain_scale = 1.08 if req.rain_on else 1.0
+    n_adm = max(5.0, b_adm * pressure_scale * rain_scale)
+
+    # Breaches per minute: scale with pressure ^1.2 and small rain penalty
+    base_den = max(1.0, b_press + 1.0)
+    n_bpm = max(0.0, base_bpm * ((n_press + 1.0) / base_den) ** 1.2)
+    if req.rain_on:
+        n_bpm *= 1.05
+
+    # Typical ETA via model (if available) + supply effect from DPA change
+    eta_base = await _eta_typical(req.city, False)
+    eta_rain = await _eta_typical(req.city, True) if req.rain_on else eta_base
+    # supply/demand effect: +15% per +1 in DPA over baseline (capped)
+    dpa_uplift = _clamp(0.15 * max(0.0, n_dpa - b_dpa), 0.0, 0.5)
+    n_eta_typical = (eta_rain if req.rain_on else eta_base) * (1.0 + dpa_uplift)
+
+    return {
+        "baseline": {
+            "pressure_score": round(b_press, 1),
+            "order_count": round(b_ord, 1),
+            "available_couriers": round(b_avail, 1),
+            "demand_per_available": round(b_dpa, 3),
+            "avg_delivery_time": round(b_adm, 2),
+            "breaches_per_min": round(base_bpm, 3),
+            "eta_typical": round(eta_base, 2)
+        },
+        "predicted": {
+            "pressure_score": round(n_press, 1),
+            "order_count": round(n_ord, 1),
+            "available_couriers": round(n_avail, 1),
+            "demand_per_available": round(n_dpa, 3),
+            "avg_delivery_time": round(n_adm, 2),
+            "breaches_per_min": round(n_bpm, 3),
+            "eta_typical": round(n_eta_typical, 2)
+        },
+        "deltas": {
+            "pressure_score": round(n_press - b_press, 1),
+            "demand_per_available": round(n_dpa - b_dpa, 3),
+            "avg_delivery_time": round(n_adm - b_adm, 2),
+            "breaches_per_min": round(n_bpm - base_bpm, 3),
+            "eta_typical": round(n_eta_typical - eta_base, 2)
+        }
+    }
 
 # ------------------------------
 # WebSocket client management
