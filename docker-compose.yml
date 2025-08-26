@@ -287,6 +287,10 @@ services:
     container_name: webapi
     environment:
       PG_DSN: postgresql://airflow:airflow@postgres:5432/airflow
+      JWT_SECRET: ${JWT_SECRET:-}              # <= new (leave empty to allow-all)
+      KAFKA_BOOTSTRAP: ${KAFKA_BOOTSTRAP:-kafka:9092}  # <= new (for decisions producer)
+      USE_FLINK_SINKS: "true"
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -306,9 +310,10 @@ services:
     container_name: notifier
     environment:
       KAFKA_BOOTSTRAP: kafka:9092
-      TOPICS: "sla_violations,dynamic_sla_violations"
+      TOPICS: "sla_violations,dynamic_sla_violations,eta_predictions,courier_features_live,restaurant_features_live"
       PG_DSN: postgresql://airflow:airflow@postgres:5432/airflow
       WEBAPI_NOTIFY_URL: http://webapi:8000/api/notify
+      PROM_PORT: ${PROM_PORT:-8008}     # <= new
     depends_on:
       kafka:
         condition: service_healthy
@@ -316,6 +321,8 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
+    ports:
+      - "8008:8008"                    # <= expose /metrics
     networks:
       - networkPFE
   frontend:
@@ -325,7 +332,8 @@ services:
       webapi:
         condition: service_started
     environment:
-      - VITE_API=http://webapi:8000
+    - VITE_API=http://localhost:8001
+    - VITE_WS_TOKEN=${WS_TOKEN:-}     # <= new (optional; required if JWT_SECRET is set)
     ports:
       - "3000:80"
     networks:

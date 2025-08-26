@@ -7,135 +7,153 @@ import { useNavigate } from "react-router-dom";
 import { readCache, writeCache } from "./cache";
 
 const API = import.meta.env.VITE_API || `http://${window.location.hostname}:8001`;
-
-// simple, readable colors
 const POS_COLOR = "#22c55e";
 const NEG_COLOR = "#ef4444";
 
+/** Normalize any server shape (array or {rows:[]}, different key names) into a common row */
+function normalizePayload(raw) {
+    let arr = [];
+    if (Array.isArray(raw)) arr = raw;
+    else if (raw && Array.isArray(raw.rows)) arr = raw.rows;
+
+    return arr.map((d) => {
+        // Accept both sink-style and fallback-style keys
+        const entityId =
+            d.entity_id ??
+            d.restaurant_id ??
+            d.delivery_person_id ??
+            null;
+
+        const entityName =
+            d.entity_name ??
+            d.name ??
+            d.restaurant_name ??
+            d.courier_name ??
+            (entityId ? `#${entityId}` : "Unknown");
+
+        const cityName = d.city_name ?? d.city ?? "";
+
+        const reviews =
+            Number(d.reviews ?? d.review_count ?? 0);
+
+        const avgRating =
+            Number(d.avg_rating ?? d.avg ?? 0);
+
+        const pos =
+            Number(d.pos ?? d.pos_reviews ?? d.positive ?? 0);
+
+        const neg =
+            Number(d.neg ?? d.neg_reviews ?? d.negative ?? 0);
+
+        return {
+            entity_id: entityId,
+            entity_name: entityName,
+            city_name: cityName,
+            reviews,
+            avg_rating: avgRating,
+            pos,
+            neg,
+        };
+    }).filter(r => r.reviews > 0);
+}
+
 export default function SentimentPanel() {
     const [minutes, setMinutes] = useState(60);
-    const cacheKey = `sentiment_${minutes}`;
-    const [sortBy, setSortBy] = useState("positivity"); // 'positivity' | 'reviews'
-    const [limit, setLimit] = useState(12);
-    const [rows, setRows] = useState(readCache(cacheKey, []));
-    const [summary, setSummary] = useState(readCache(`${cacheKey}_summary`, { total:0, posRate:0, avg:0 }));
-    const [err, setErr] = useState("");
+    const [entity, setEntity]   = useState("restaurant"); // "restaurant" | "courier"
+    const [sortBy, setSortBy]   = useState("positivity"); // "positivity" | "reviews"
+    const [limit, setLimit]     = useState(12);
 
+    const cacheKey = `sentiment_${entity}_${minutes}`;
+    const [rows, setRows] = useState(readCache(cacheKey, []));
+    const [err, setErr]   = useState("");
+
+    // fetch + normalize
     useEffect(() => {
         let alive = true;
+
         const load = async () => {
             try {
                 setErr("");
-                const r = await fetch(`${API}/api/sentiment?minutes=${minutes}`, { cache: "no-store" });
-                if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                const data = await r.json();
+                const res  = await fetch(`${API}/api/sentiment?minutes=${minutes}&kind=${entity}`, { cache: "no-store" });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const raw  = await res.json();
+                const data = normalizePayload(raw);
                 if (!alive) return;
-
-                const safe = (Array.isArray(data) ? data : [])
-                    .map(d => ({
-                        city_name: d.city_name,
-                        reviews: Number(d.reviews) || 0,
-                        pos: Number(d.pos) || 0,
-                        neg: Number(d.neg) || 0,
-                        avg_rating: Number(d.avg_rating) || 0,
-                    }))
-                    .filter(d => d.reviews > 0);
-
-                setRows(safe);
-                writeCache(cacheKey, safe);
-
-                // recompute summary
-                const total = safe.reduce((a,b)=>a+b.reviews,0);
-                const pos = safe.reduce((a,b)=>a+b.pos,0);
-                const neg = safe.reduce((a,b)=>a+b.neg,0);
-                const avg = total ? (safe.reduce((a,b)=>a+b.avg_rating*b.reviews,0)/total) : 0;
-                const posRate = total ? Math.round((pos/(pos+neg))*100) : 0;
-                const sum = { total, posRate, avg };
-                setSummary(sum);
-                writeCache(`${cacheKey}_summary`, sum);
+                setRows(data);
+                writeCache(cacheKey, data);
             } catch (e) {
                 if (!alive) return;
-                setRows([]);
                 setErr(String(e));
+                setRows([]);
             }
         };
+
         load();
-        const t = setInterval(load, 10000);
+        const t = setInterval(load, 10_000);
         return () => { alive = false; clearInterval(t); };
-    }, [minutes]);
+    }, [minutes, entity]); // cacheKey derives from these
 
-    const enriched = useMemo(() => {
-        return rows.map(r => ({
+    // enrich & totals
+    const enriched = useMemo(() =>
+        rows.map(r => ({
             ...r,
+            label: `${r.entity_name} (${r.city_name})`,
             posPct: r.reviews ? (r.pos * 100) / r.reviews : 0,
-        }));
-    }, [rows]);
+        })), [rows]);
 
-    const totals = useMemo(() => {
-        return enriched.reduce((acc, r) => {
-            acc.reviews += r.reviews;
-            acc.pos += r.pos;
-            acc.neg += r.neg;
-            acc.ratingSum += r.avg_rating * r.reviews;
-            return acc;
-        }, { reviews: 0, pos: 0, neg: 0, ratingSum: 0 });
-    }, [enriched]);
+    const totals = useMemo(() => enriched.reduce((a, r) => {
+        a.reviews   += r.reviews || 0;
+        a.pos       += r.pos || 0;
+        a.neg       += r.neg || 0;
+        a.ratingSum += (r.avg_rating || 0) * (r.reviews || 0);
+        return a;
+    }, { reviews:0, pos:0, neg:0, ratingSum:0 }), [enriched]);
 
-    const overallAvg = totals.reviews ? (totals.ratingSum / totals.reviews) : 0;
+    const overallAvg    = totals.reviews ? (totals.ratingSum / totals.reviews) : 0;
     const overallPosPct = totals.reviews ? Math.round((totals.pos * 100) / totals.reviews) : 0;
 
     const sorted = useMemo(() => {
         const copy = [...enriched];
-        if (sortBy === "reviews") {
-            copy.sort((a,b) => b.reviews - a.reviews);
-        } else {
-            copy.sort((a,b) => b.posPct - a.posPct);
-        }
+        if (sortBy === "reviews") copy.sort((a,b)=> (b.reviews||0)-(a.reviews||0));
+        else copy.sort((a,b)=> (b.posPct||0)-(a.posPct||0));
         return copy.slice(0, limit || copy.length);
     }, [enriched, sortBy, limit]);
 
-    // Recharts data for pie & bars
+    // charts
     const pieData = [
         { name: "Positive", value: totals.pos, fill: POS_COLOR },
         { name: "Negative", value: totals.neg, fill: NEG_COLOR },
     ];
-    const barData = sorted.map(r => ({ name: r.city_name, Positive: r.pos, Negative: r.neg }));
-    // --- tight domain + dynamic Y-axis width ---
-    const maxStack = Math.max(1, ...barData.map(d => (d.Positive || 0) + (d.Negative || 0)));
-    const xDomain  = [0, Math.ceil(maxStack * 1.05)];     // 5% headroom
-
-// rough width per label character so long names fit without giant padding
-    const maxLabelLen = Math.max(0, ...barData.map(d => (d.name?.length || 0)));
-    const yAxisWidth  = Math.min(130, Math.max(80, 7 * maxLabelLen));  // 80–130px
-
+    const barData = sorted.map(r => ({ name: r.label, Positive: r.pos, Negative: r.neg }));
 
     const navigate = useNavigate();
-    const openSupersetCity = (city) => {
-        navigate(`/dashboards?city=${encodeURIComponent(city)}`);
-    };
+    const openDash = (city) => navigate(`/dashboards?city=${encodeURIComponent(city)}`);
 
     return (
         <div className="card">
-            <div className="sentiment-header">
-                <h3>Customer Sentiment</h3>
-                <div className="sentiment-controls">
-                    <label>
-                        Window:
-                        <select value={minutes} onChange={e => setMinutes(+e.target.value)}>
-                            {[30, 60, 120, 240].map(m => <option key={m} value={m}>{m}m</option>)}
+            <div className="sentiment-header" style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <h3>Customer Sentiment — {entity === "courier" ? "Couriers" : "Restaurants"}</h3>
+                <div className="sentiment-controls" style={{display:"flex",gap:10,alignItems:"center"}}>
+                    <label>Entity:
+                        <select value={entity} onChange={e=>setEntity(e.target.value)}>
+                            <option value="restaurant">Restaurants</option>
+                            <option value="courier">Couriers</option>
                         </select>
                     </label>
-                    <label>
-                        Sort by:
-                        <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                    <label>Window:
+                        <select value={minutes} onChange={e=>setMinutes(+e.target.value)}>
+                            {[30,60,120,240].map(m=><option key={m} value={m}>{m}m</option>)}
+                        </select>
+                    </label>
+                    <label>Sort by:
+                        <select value={sortBy} onChange={e=>setSortBy(e.target.value)}>
                             <option value="positivity">% Positive</option>
                             <option value="reviews">Reviews</option>
                         </select>
                     </label>
-                    <label>
-                        Top:
-                        <select value={limit} onChange={e => setLimit(+e.target.value)}>
-                            {[6, 8, 12, 20].map(n => <option key={n} value={n}>{n}</option>)}
+                    <label>Top:
+                        <select value={limit} onChange={e=>setLimit(+e.target.value)}>
+                            {[6,8,12,20].map(n=><option key={n} value={n}>{n}</option>)}
                             <option value={0}>All</option>
                         </select>
                     </label>
@@ -144,23 +162,15 @@ export default function SentimentPanel() {
 
             {err && <div className="note error">Error: {err}</div>}
 
-            {/* KPI tiles */}
-            <div className="grid sentiment-kpis">
-                <div className="card mini">
-                    <div>Total reviews</div>
-                    <b>{totals.reviews}</b>
-                </div>
+            {/* KPIs */}
+            <div className="grid sentiment-kpis" style={{margin:"10px 0"}}>
+                <div className="card mini"><div>Total reviews</div><b>{totals.reviews}</b></div>
                 <div className="card mini">
                     <div>Overall positivity</div>
                     <b>{overallPosPct}%</b>
-                    <div className="bar">
-                        <div className="bar-in" style={{ width: `${overallPosPct}%`, background: POS_COLOR }} />
-                    </div>
+                    <div className="bar"><div className="bar-in" style={{width:`${overallPosPct}%`,background:POS_COLOR}}/></div>
                 </div>
-                <div className="card mini">
-                    <div>Avg rating</div>
-                    <b>{overallAvg.toFixed(2)} ★</b>
-                </div>
+                <div className="card mini"><div>Avg rating</div><b>{overallAvg.toFixed(2)} ★</b></div>
             </div>
 
             {!enriched.length ? (
@@ -173,81 +183,58 @@ export default function SentimentPanel() {
                             <h4>Overall (last {minutes}m)</h4>
                             <ResponsiveContainer width="100%" height={220}>
                                 <PieChart>
-                                    <Pie
-                                        data={pieData}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        innerRadius={60}
-                                        outerRadius={90}
-                                        isAnimationActive={false}
-                                    >
-                                        {pieData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
+                                    <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={60} outerRadius={90} isAnimationActive={false}>
+                                        {pieData.map((d,i)=><Cell key={i} fill={d.fill}/>)}
                                     </Pie>
-                                    <Legend />
-                                    <Tooltip />
+                                    <Legend/><Tooltip/>
                                 </PieChart>
                             </ResponsiveContainer>
                         </div>
 
-                        {/* Horizontal stacked bars per city */}
+                        {/* Horizontal stacked bars */}
                         <div className="card">
-                            <h4>Cities (stacked Pos/Neg)</h4>
-                            <ResponsiveContainer width="100%" height={360}>
-                                <BarChart
-                                    data={barData}
-                                    layout="vertical"
-                                    margin={{ left: 16, right: 8, top: 6 }}   // was 110,8,6
-                                    barCategoryGap="20%"
-                                >
+                            <h4>{entity === "courier" ? "Couriers" : "Restaurants"} (stacked Pos/Neg)</h4>
+                            <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={barData} layout="vertical" margin={{ left: 140 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis
-                                        type="number"
-                                        domain={xDomain}
-                                        tick={{ fill: 'var(--muted)', fontSize: 12 }}
-                                        tickLine={false}
-                                        allowDecimals={false}
-                                    />
-                                    <YAxis
-                                        type="category"
-                                        dataKey="name"
-                                        width={yAxisWidth}                        // was fixed 120
-                                        tick={{ fill: 'var(--muted)', fontSize: 12 }}
-                                        tickLine={false}
-                                    />
+                                    <XAxis type="number" />
+                                    <YAxis type="category" dataKey="name" width={260} />
                                     <Tooltip />
-                                    <Bar dataKey="Positive" stackId="a" fill="#22c55e" />
-                                    <Bar dataKey="Negative" stackId="a" fill="#ef4444" />
+                                    <Legend />
+                                    <Bar dataKey="Positive" stackId="a" fill={POS_COLOR} />
+                                    <Bar dataKey="Negative" stackId="a" fill={NEG_COLOR} />
                                 </BarChart>
                             </ResponsiveContainer>
-
                         </div>
                     </div>
 
-                    {/* Compact table */}
+                    {/* Details */}
                     <div className="card">
                         <h4>Details</h4>
                         <table className="table">
                             <thead>
                             <tr>
-                                <th>City</th><th>Reviews</th><th>Avg ★</th><th>% Pos</th><th></th>
+                                <th>{entity === "courier" ? "Courier" : "Restaurant"} (City)</th>
+                                <th>Reviews</th>
+                                <th>Avg ★</th>
+                                <th>% Pos</th>
+                                <th></th>
                             </tr>
                             </thead>
                             <tbody>
-                            {sorted.map((r, i) => {
-                                const pct = r.reviews ? Math.round((r.pos * 100) / r.reviews) : 0;
+                            {sorted.map((r,i)=>{
+                                const pct = r.reviews ? Math.round((r.pos*100)/r.reviews) : 0;
                                 return (
-                                    <tr key={i} className={pct >= 65 ? "ok" : pct < 45 ? "crit" : ""}>
-                                        <td>{r.city_name}</td>
+                                    <tr key={i} className={pct>=65 ? "ok" : pct<45 ? "crit" : ""}>
+                                        <td>{r.entity_name} <span style={{opacity:.7}}>({r.city_name})</span></td>
                                         <td>{r.reviews}</td>
-                                        <td>{r.avg_rating.toFixed(2)}</td>
+                                        <td>{Number(r.avg_rating || 0).toFixed(2)}</td>
                                         <td style={{ minWidth: 160 }}>
-                                            <div className="bar">
-                                                <div className="bar-in" style={{ width: `${pct}%`, background: POS_COLOR }} />
-                                            </div>
+                                            <div className="bar"><div className="bar-in" style={{ width:`${pct}%`, background: POS_COLOR }} /></div>
                                             <div style={{ fontSize: 12, opacity: .75 }}>{pct}%</div>
                                         </td>
                                         <td style={{ textAlign: "right" }}>
-                                            <button className="btn" onClick={() => openSupersetCity(r.city_name)}>Open in dashboard</button>
+                                            <button className="btn" onClick={()=>openDash(r.city_name)}>Open dashboard</button>
                                         </td>
                                     </tr>
                                 );

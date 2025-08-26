@@ -1,12 +1,28 @@
-import os, json, asyncio
+import os, json, asyncio, math, time
 import asyncpg
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Depends, Header, Query
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import json
-import math
-from datetime import datetime
+from pydantic import BaseModel, Field
+from typing import Optional, Any, Dict
+from datetime import datetime, timedelta
+from aiokafka import AIOKafkaProducer
+from fastapi import Query
+from typing import Optional
+from fastapi import Body
+
+_producer: Optional[AIOKafkaProducer] = None
+# Optional JWT auth (dev-friendly: allow if secret not set)
+try:
+    import jwt  # pyjwt
+except Exception:
+    jwt = None
+
+JWT_SECRET = os.getenv("JWT_SECRET")
+KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "kafka:9092")
+USE_FLINK_SINKS = os.getenv("USE_FLINK_SINKS", "false").lower() in ("1","true","yes")
+
+
 
 PG_DSN = os.getenv("PG_DSN", "postgresql://airflow:airflow@postgres:5432/airflow")
 
@@ -30,13 +46,24 @@ clients: set[WebSocket] = set()
 # ------------------------------
 @app.on_event("startup")
 async def on_start():
-    global pool
+    global pool, _producer
     pool = await asyncpg.create_pool(PG_DSN, min_size=1, max_size=5)
+    try:
+        _producer = AIOKafkaProducer(
+            bootstrap_servers=KAFKA_BOOTSTRAP,
+            value_serializer=lambda d: json.dumps(d).encode("utf-8")
+        )
+        await _producer.start()
+    except Exception:
+        _producer = None  # optional
 
 @app.on_event("shutdown")
 async def on_stop():
-    if pool:
-        await pool.close()
+    if pool: await pool.close()
+    if _producer:
+        try: await _producer.stop()
+        except Exception: pass
+
 
 # ------------------------------
 # Health
@@ -48,14 +75,17 @@ async def health():
 # ------------------------------
 # Models
 # ------------------------------
-class NotifyIn(BaseModel):
-    id: int
-    created_at: str | None = None
+class NotifyCompat(BaseModel):
+    # legacy shape (from notifier)
+    id: int = 0
+    created_at: Optional[str] = None
     type: str
-    severity: str
+    severity: str = "info"
     title: str
-    details: dict | str | None = None
-    link: str | None = None
+    details: Optional[Any] = None
+    link: Optional[str] = None
+    city: Optional[str] = None
+
 
 class EtaReq(BaseModel):
     # adapt to your model features if needed
@@ -141,6 +171,37 @@ async def _eta_typical(city: str, rain: bool) -> float:
     except Exception:
         return 25.0
 
+class MessageV1(BaseModel):
+    type: str = Field(..., description="event type, e.g., 'sla_violation', 'sentiment_update'")
+    title: str
+    severity: str = "info"  # info|warning|critical
+    city: Optional[str] = None
+    payload: Optional[Dict[str, Any]] = None
+
+def _allow_dev() -> bool:
+    return not JWT_SECRET  # if no secret, allow all
+
+def verify_jwt_or_allow(token: Optional[str]) -> None:
+    if _allow_dev():
+        return
+    if not token:
+        raise HTTPException(status_code=401, detail="Missing token")
+    if not jwt:
+        raise HTTPException(status_code=500, detail="JWT not available on server")
+    try:
+        jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+async def require_bearer(authorization: Optional[str] = Header(None)):
+    if _allow_dev():
+        return
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(401, "Missing bearer token")
+    token = authorization.split(" ", 1)[1]
+    verify_jwt_or_allow(token)
+
+
 @app.post("/api/sim/estimate")
 async def sim_estimate(req: SimEstimateReq):
     async with pool.acquire() as con:
@@ -220,17 +281,23 @@ async def sim_estimate(req: SimEstimateReq):
 # WebSocket client management
 # ------------------------------
 @app.websocket("/ws")
-async def ws(ws: WebSocket):
+async def ws(ws: WebSocket, token: Optional[str] = Query(default=None)):
+    # optional auth
+    try:
+        verify_jwt_or_allow(token)
+    except HTTPException:
+        await ws.close(code=4401)  # policy violation
+        return
     await ws.accept()
     clients.add(ws)
     try:
         while True:
-            # keep the socket alive; we don't need payload from client
-            await asyncio.sleep(30)
+            await asyncio.sleep(30)  # keepalive
     except WebSocketDisconnect:
         pass
     finally:
         clients.discard(ws)
+
 
 async def broadcast(message: dict):
 
@@ -303,11 +370,14 @@ async def kpi():
                 FROM eta_model_performance
             """)
 
-    return {
-        "orders_per_min": int(opm or 0),
-        "sla_today": int(sla or 0),
-        "eta_mae_1h": float(mae or 0.0)
-    }
+        return {
+            "orders_per_min": int(opm or 0),
+            "sla_today": int(sla or 0),
+            "eta_mae_1h": float(mae or 0.0),
+            "window_ms": 60000,
+            "calculated_at": datetime.utcnow().isoformat()+"Z"
+        }
+
 
 @app.get("/api/sla")
 async def api_sla(limit: int = 50):
@@ -334,8 +404,19 @@ async def city_demand(minutes: int = 60):
 
 # Notifier posts here; relay to clients
 @app.post("/api/notify")
-async def notify(evt: NotifyIn):
-    await broadcast(evt.model_dump())
+async def notify(evt: Dict[str, Any], _auth=Depends(require_bearer)):
+    """
+    Accept either MessageV1 or the legacy NotifyCompat and broadcast MessageV1.
+    """
+    try:
+        # First try V1
+        v1 = MessageV1(**evt)
+    except Exception:
+        # Try compat and convert
+        c = NotifyCompat(**evt)
+        v1 = MessageV1(type=c.type, title=c.title, severity=c.severity,
+                       city=c.city, payload=c.details if isinstance(c.details, dict) else {"details": c.details})
+    await broadcast(v1.model_dump())
     return JSONResponse({"ok": True})
 
 # ------------------------------
@@ -448,7 +529,7 @@ async def pressure_top(minutes: int = 10, limit: int = 8):
     WITH latest AS (
       SELECT DISTINCT ON (city_name)
              city_name, ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
-      FROM ops.city_pressure_minute
+      FROM ops.city_pressure_minute_mv
       WHERE ts >= NOW() - make_interval(mins => $1::int)
       ORDER BY city_name, ts DESC
     )
@@ -465,7 +546,7 @@ async def pressure_top(minutes: int = 10, limit: int = 8):
 async def pressure_series(city: str, minutes: int = 120):
     q = """
     SELECT ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
-    FROM ops.city_pressure_minute
+    FROM ops.city_pressure_minute_mv
     WHERE city_name = $1 AND ts >= NOW() - make_interval(mins => $2::int)
     ORDER BY ts
     """
@@ -520,6 +601,10 @@ class RecAction(BaseModel):
     user: str | None = "demo"
 
 @app.post("/api/recommendations/approve")
+async def publish_decision(topic: str, payload: dict):
+    if _producer:
+        await _producer.send_and_wait(topic, payload)
+
 async def recommendations_approve(rec: RecAction):
     if rec.kind == "SURGE_CITY":
         minutes = int(rec.suggested_params.get("minutes", 15))
@@ -529,8 +614,15 @@ async def recommendations_approve(rec: RecAction):
             await con.execute("""
               INSERT INTO ops.recommendations(city_name, kind, score, rationale, suggested_params, status, decided_at, decided_by)
               VALUES ($1,$2,$3,$4,$5::jsonb,'approved', NOW(), $6)
-            """, rec.city_name, rec.kind, rec.score, "approved via UI",
-                              json.dumps(rec.suggested_params), rec.user)
+            """, rec.city_name, rec.kind, rec.score, "approved via UI",json.dumps(rec.suggested_params), rec.user)
+            await publish_decision("ops.decisions", {
+                "kind": "SURGE_CITY",
+                "city": rec.city_name,
+                "multiplier": float(rec.suggested_params.get("multiplier", 1.5)),
+                "minutes": int(rec.suggested_params.get("minutes", 15)),
+                "decided_by": rec.user or "demo",
+                "ts": time.time()
+            })
         # trigger surge using your existing action
         # (reuse existing endpoint logic by calling into DB directly then toast)
         await mute_or_surge("SURGE", rec.city_name, minutes, mult)
@@ -575,13 +667,13 @@ async def mute_or_surge(kind: str, city: str, minutes: int, mult: float):
 async def replay(city: str, minutes: int = 120):
     async with pool.acquire() as con:
         pres = await con.fetch("""
-          SELECT ts, pressure_score FROM ops.city_pressure_minute
+          SELECT ts, pressure_score FROM ops.city_pressure_minute_mv
           WHERE city_name = $1 AND ts >= NOW() - make_interval(mins => $2::int)
           ORDER BY ts
         """, city, minutes)
         br = await con.fetch("""
           SELECT ts, SUM(breaches)::int AS breaches
-          FROM ops.sla_breaches_per_minute
+          FROM ops.sla_breaches_per_minute_mv
           WHERE city_name=$1 AND ts >= NOW() - make_interval(mins => $2::int)
           GROUP BY ts ORDER BY ts
         """, city, minutes)
@@ -672,35 +764,143 @@ async def sim_outage(req: OutageReq):
     return {"ok": True}
 
 @app.get("/api/sentiment")
-async def api_sentiment(minutes: int = 60):
-    async with pool.acquire() as con:
-        rows = await con.fetch("""
-            WITH src AS (
-              SELECT
-                c.city_name,
-                orv.posted_at,
-                orv.rating,
-                orv.sentiment
-              FROM order_reviews      AS orv
-              JOIN orders             AS o  ON o.order_id      = orv.order_id
-              JOIN restaurants        AS r  ON r.restaurant_id = o.restaurant_id
-              JOIN cities             AS c  ON c.city_id       = r.city_id
-              WHERE orv.posted_at >= (NOW()::timestamp - ($1::int * interval '1 minute'))
+async def api_sentiment(minutes: int = 60, kind: str = "restaurant"):
+    """
+    Sentiment by entity:
+      - kind=restaurant -> per restaurant (with city)
+      - kind=courier    -> per courier (with city)
+    Returns: [{entity_id, entity_name, city_name, reviews, avg_rating, pos, neg}, ...]
+    """
+    kind = (kind or "restaurant").lower()
+
+    async def table_exists(con, table_name: str) -> bool:
+        return await con.fetchval("""
+            SELECT EXISTS (
+              SELECT 1 FROM information_schema.tables
+              WHERE table_schema='public' AND table_name=$1
             )
-            SELECT
-              city_name,
-              COUNT(*)                                           AS reviews,
-              ROUND(AVG(rating)::numeric, 2)                     AS avg_rating,
-              SUM(CASE WHEN sentiment = 'positive' THEN 1 ELSE 0 END) AS pos,
-              SUM(CASE WHEN sentiment = 'negative' THEN 1 ELSE 0 END) AS neg
-            FROM src
-            GROUP BY city_name
-            ORDER BY reviews DESC
-        """, minutes)
+        """, table_name)
+
+    async with pool.acquire() as con:
+        use_flink = USE_FLINK_SINKS
+        if use_flink:
+            # Only use sinks if they actually exist
+            if kind == "restaurant":
+                use_flink = await table_exists(con, "restaurant_live_sentiment")
+            else:
+                use_flink = await table_exists(con, "courier_live_sentiment")
+
+        if use_flink and kind == "restaurant":
+            # --- FLINK SINK: restaurant_live_sentiment (5-min windows), roll up over N minutes
+            rows = await con.fetch("""
+                SELECT
+                  r.restaurant_id                                              AS entity_id,
+                  COALESCE(r.name, 'Restaurant ' || r.restaurant_id::text)     AS entity_name,
+                  c.city_name,
+                  SUM(rs.review_count)::bigint                                 AS reviews,
+                  ROUND((
+                    SUM(rs.avg_rating * rs.review_count)
+                    / NULLIF(SUM(rs.review_count), 0)
+                  )::numeric, 2)                                               AS avg_rating,
+                  SUM(rs.pos_reviews)::bigint                                  AS pos,
+                  SUM(rs.neg_reviews)::bigint                                  AS neg
+                FROM restaurant_live_sentiment rs
+                JOIN restaurants r ON r.restaurant_id = rs.restaurant_id
+                JOIN cities      c ON c.city_id       = r.city_id
+                WHERE rs.window_end >= NOW() - ($1::int) * INTERVAL '1 minute'
+                GROUP BY r.restaurant_id, entity_name, c.city_name
+                ORDER BY reviews DESC
+            """, minutes)
+
+        elif use_flink and kind == "courier":
+            # --- FLINK SINK: courier_live_sentiment (5-min windows), roll up over N minutes
+            rows = await con.fetch("""
+                SELECT
+                  dp.delivery_person_id                                         AS entity_id,
+                  COALESCE(dp.name, 'Courier ' || dp.delivery_person_id::text)  AS entity_name,
+                  c.city_name,
+                  SUM(cls.review_count)::bigint                                 AS reviews,
+                  ROUND((
+                    SUM(cls.avg_rating * cls.review_count)
+                    / NULLIF(SUM(cls.review_count), 0)
+                  )::numeric, 2)                                               AS avg_rating,
+                  SUM(cls.pos_reviews)::bigint                                  AS pos,
+                  SUM(cls.neg_reviews)::bigint                                  AS neg
+                FROM courier_live_sentiment cls
+                JOIN delivery_personnel dp ON dp.delivery_person_id = cls.delivery_person_id
+                JOIN cities            c  ON c.city_id             = dp.city_id
+                WHERE cls.window_end >= NOW() - ($1::int) * INTERVAL '1 minute'
+                GROUP BY dp.delivery_person_id, entity_name, c.city_name
+                ORDER BY reviews DESC
+            """, minutes)
+
+        elif kind == "courier":
+            # --- FALLBACK (no sinks): join source tables by courier
+            rows = await con.fetch("""
+                WITH src AS (
+                  SELECT
+                    dp.delivery_person_id                                        AS entity_id,
+                    COALESCE(dp.name, 'Courier ' || dp.delivery_person_id::text) AS entity_name,
+                    c.city_name,
+                    orv.rating,
+                    orv.sentiment
+                  FROM order_reviews      AS orv
+                  JOIN orders             AS o  ON o.order_id            = orv.order_id
+                  JOIN delivery_personnel AS dp ON dp.delivery_person_id = o.delivery_person_id
+                  JOIN cities             AS c  ON c.city_id             = dp.city_id
+                  WHERE orv.posted_at >= NOW() - ($1::int) * INTERVAL '1 minute'
+                )
+                SELECT
+                  entity_id,
+                  entity_name,
+                  city_name,
+                  COUNT(*)                                           AS reviews,
+                  ROUND(AVG(rating)::numeric, 2)                     AS avg_rating,
+                  SUM(CASE WHEN sentiment='positive' THEN 1 ELSE 0 END) AS pos,
+                  SUM(CASE WHEN sentiment='negative' THEN 1 ELSE 0 END) AS neg
+                FROM src
+                GROUP BY entity_id, entity_name, city_name
+                ORDER BY reviews DESC
+            """, minutes)
+
+        else:
+            # --- FALLBACK (no sinks): join source tables by restaurant
+            rows = await con.fetch("""
+                WITH src AS (
+                  SELECT
+                    r.restaurant_id                                             AS entity_id,
+                    COALESCE(r.name, 'Restaurant ' || r.restaurant_id::text)    AS entity_name,
+                    c.city_name,
+                    orv.rating,
+                    orv.sentiment
+                  FROM order_reviews AS orv
+                  JOIN orders        AS o ON o.order_id      = orv.order_id
+                  JOIN restaurants   AS r ON r.restaurant_id = o.restaurant_id
+                  JOIN cities        AS c ON c.city_id       = r.city_id
+                  WHERE orv.posted_at >= NOW() - ($1::int) * INTERVAL '1 minute'
+                )
+                SELECT
+                  entity_id,
+                  entity_name,
+                  city_name,
+                  COUNT(*)                                           AS reviews,
+                  ROUND(AVG(rating)::numeric, 2)                     AS avg_rating,
+                  SUM(CASE WHEN sentiment='positive' THEN 1 ELSE 0 END) AS pos,
+                  SUM(CASE WHEN sentiment='negative' THEN 1 ELSE 0 END) AS neg
+                FROM src
+                GROUP BY entity_id, entity_name, city_name
+                ORDER BY reviews DESC
+            """, minutes)
+
     return [dict(r) for r in rows]
+
+
+
 
 @app.get("/api/revenue/kpis")
 async def revenue_kpis(minutes: int = 60):
+    window_end = datetime.utcnow()
+    window_start = window_end - timedelta(minutes=minutes)
     async with pool.acquire() as con:
         # Completion timestamp = COALESCE(pickup_time, order_timestamp) + time_taken_minutes
         gmv_window = await con.fetchval("""
@@ -740,10 +940,14 @@ async def revenue_kpis(minutes: int = 60):
         "aov_window": float(aov_window or 0),
         "gmv_today": float(gmv_today or 0),
         "orders_today": int(orders_today or 0),
+        "window_start": window_start.isoformat()+"Z",
+        "window_end": window_end.isoformat()+"Z",
     }
 
 @app.get("/api/revenue/by_city")
 async def revenue_by_city(minutes: int = 60):
+    window_end = datetime.utcnow()
+    window_start = window_end - timedelta(minutes=minutes)
     async with pool.acquire() as con:
         rows = await con.fetch("""
           SELECT c.city_name,
@@ -759,5 +963,539 @@ async def revenue_by_city(minutes: int = 60):
           GROUP BY c.city_name
           ORDER BY gmv DESC
         """, minutes)
+    return {
+        "window_start": window_start.isoformat()+"Z",
+        "window_end": window_end.isoformat()+"Z",
+        "rows": [dict(r) for r in rows]
+    }
+
+@app.get("/health/ready")
+async def ready():
+    try:
+        async with pool.acquire() as con:
+            await con.fetchval("SELECT 1")
+    except Exception as e:
+        raise HTTPException(503, f"DB not ready: {e}")
+    return {"status": "ready"}
+
+@app.get("/api/orders/live")
+async def orders_live(limit: int = 20):
+    q = """
+    SELECT
+      o.order_id,
+      c.city_name,
+      r.name,
+      o.status,
+      o.total_price::float AS price,
+      o.order_timestamp,
+      COALESCE(o.pickup_time, o.order_timestamp) AS started_at,
+      COALESCE(o.time_taken_minutes, 0) AS eta_guess
+    FROM orders o
+    LEFT JOIN restaurants r ON r.restaurant_id = o.restaurant_id
+    LEFT JOIN cities      c ON c.city_id      = o.city_id         -- << key change
+    WHERE o.status <> 'Completed'
+      AND o.order_timestamp >= NOW() - INTERVAL '12 hours'
+    ORDER BY o.order_timestamp DESC
+    LIMIT $1
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, limit)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/alerts/active")
+async def alerts_active():
+    alerts = []
+    async with pool.acquire() as con:
+        shortage = await con.fetch("""
+          WITH latest AS (
+            SELECT DISTINCT ON (city_name)
+                   city_name, ts, pressure_score, order_count, available_couriers
+            FROM ops.city_pressure_minute_mv
+            ORDER BY city_name, ts DESC
+          )
+          SELECT * FROM latest
+          WHERE pressure_score >= 75
+          ORDER BY pressure_score DESC
+          LIMIT 3
+        """)
+        for r in shortage:
+            alerts.append({
+                "kind": "driver_shortage",
+                "severity": "warning",
+                "title": f"Driver shortage in {r['city_name']}",
+                "details": {
+                    "pressure": float(r["pressure_score"] or 0),
+                    "orders": int(r["order_count"] or 0),
+                    "available_couriers": int(r["available_couriers"] or 0),
+                }
+            })
+
+        spike = await con.fetch("""
+          SELECT city_name, SUM(breaches)::int AS breaches
+          FROM ops.sla_breaches_per_minute_mv
+          WHERE ts >= NOW() - INTERVAL '10 minutes'
+          GROUP BY city_name
+          HAVING SUM(breaches) >= 3
+          ORDER BY breaches DESC
+          LIMIT 3
+        """)
+        for r in spike:
+            alerts.append({
+                "kind": "sla_spike",
+                "severity": "critical",
+                "title": f"SLA breaches spiking in {r['city_name']}",
+                "details": {"breaches_10m": int(r["breaches"])}
+            })
+
+        peak = await con.fetch("""
+          WITH latest AS (
+            SELECT DISTINCT ON (city_name)
+                   city_name, ts, order_count
+            FROM city_orders_per_minute
+            ORDER BY city_name, ts DESC
+          ),
+          base AS (
+            SELECT city_name, AVG(order_count) AS avg2h
+            FROM city_orders_per_minute
+            WHERE window_end >= NOW() - INTERVAL '2 hours'
+            GROUP BY city_name
+          )
+          SELECT l.city_name, l.order_count, b.avg2h
+          FROM latest l JOIN base b USING (city_name)
+          WHERE l.order_count >= 1.5 * b.avg2h
+          ORDER BY (l.order_count - b.avg2h) DESC
+          LIMIT 3
+        """)
+        for r in peak:
+            alerts.append({
+                "kind": "peak_start",
+                "severity": "info",
+                "title": f"Peak starting in {r['city_name']}",
+                "details": {"opm": int(r["order_count"] or 0)}
+            })
+    return alerts
+
+
+@app.get("/api/heatmap/cities")
+async def heatmap_cities(minutes: int = 60):
+    q = """
+    WITH l AS (
+      SELECT DISTINCT ON (city_name)
+             city_name, ts, pressure_score, order_count
+      FROM ops.city_pressure_minute_mv
+      WHERE ts >= NOW() - make_interval(mins => $1::int)
+      ORDER BY city_name, ts DESC
+    )
+    SELECT c.city_name,
+           c.latitude  AS lat,
+           c.longitude AS lon,
+           COALESCE(l.pressure_score, 0)::float AS pressure,
+           COALESCE(l.order_count, 0)::int      AS opm
+    FROM cities c
+    LEFT JOIN l USING (city_name);
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, minutes)
+    return [dict(r) for r in rows]
+
+@app.get("/api/revenue/weekly")
+async def revenue_weekly():
+    q = """
+    SELECT to_char(date_trunc('day', order_timestamp),'Dy') AS day,
+           COALESCE(SUM(total_price),0)::float AS gmv
+    FROM orders
+    WHERE status='Completed'
+      AND order_timestamp >= date_trunc('week', NOW())
+    GROUP BY 1
+    ORDER BY MIN(date_trunc('day', order_timestamp))
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q)
+    return [dict(r) for r in rows]
+
+@app.get("/api/revenue/monthly_progress")
+async def revenue_monthly_progress(target: Optional[float] = Query(default=None)):
+    async with pool.acquire() as con:
+        gmv_mtd = await con.fetchval("""
+          SELECT COALESCE(SUM(total_price),0)::float
+          FROM orders
+          WHERE status='Completed'
+            AND order_timestamp >= date_trunc('month', NOW())
+        """)
+    tgt = float(target) if target else max((gmv_mtd or 0.0) * 1.2, 350000.0)
+    pct = (gmv_mtd / tgt) * 100.0 if tgt else 0.0
+    return {"gmv_mtd": float(gmv_mtd or 0.0), "target": float(tgt), "pct": float(pct)}
+
+
+
+from typing import Optional
+
+@app.get("/api/top/restaurants")
+async def top_restaurants(
+        minutes: int = 1440,
+        city: Optional[str] = None,
+        metric: str = "gmv",          # gmv | orders | reviews
+        min_reviews: int = 0,
+        limit: int = 20
+):
+    """
+    Top restaurants by GMV (default) or orders/reviews.
+    """
+    q = """
+    WITH base AS (
+      SELECT
+        r.restaurant_id                             AS entity_id,
+        COALESCE(r.name, 'Restaurant '||r.restaurant_id::text) AS entity_name,
+        c.city_name,
+        COUNT(*) FILTER (WHERE o.status='Completed')::int                 AS orders,
+        COALESCE(SUM(CASE WHEN o.status='Completed' THEN o.total_price END),0)::float AS gmv,
+        COUNT(orv.*)::int                                                 AS reviews,
+        ROUND(AVG(orv.rating)::numeric, 2)                                AS avg_rating
+      FROM orders o
+      JOIN restaurants r ON r.restaurant_id = o.restaurant_id
+      JOIN cities      c ON c.city_id       = r.city_id
+      LEFT JOIN order_reviews orv ON orv.order_id = o.order_id
+      WHERE (COALESCE(o.pickup_time, o.order_timestamp)
+             + (COALESCE(o.time_taken_minutes,0)||' minutes')::interval)
+            >= (NOW() - ($1::int * interval '1 minute'))
+        AND ($2::text IS NULL OR c.city_name = $2)
+      GROUP BY r.restaurant_id, entity_name, c.city_name
+    )
+    SELECT * FROM base
+    WHERE ($4::int <= 0 OR reviews >= $4)
+    ORDER BY
+      CASE WHEN $3='gmv'     THEN gmv    END DESC NULLS LAST,
+      CASE WHEN $3='gmv'     THEN orders END DESC NULLS LAST,
+      CASE WHEN $3='orders'  THEN orders END DESC NULLS LAST,
+      CASE WHEN $3='orders'  THEN gmv    END DESC NULLS LAST,
+      CASE WHEN $3='reviews' THEN reviews END DESC NULLS LAST,
+      CASE WHEN $3='reviews' THEN avg_rating END DESC NULLS LAST
+    LIMIT $5;
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, minutes, city, metric, min_reviews, limit)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/top/couriers")
+async def top_couriers(minutes: int = 1440, limit: int = 20):
+    async with pool.acquire() as con:
+        rows = await con.fetch("""
+          SELECT
+            dp.delivery_person_id AS entity_id,
+            COALESCE(dp.name, 'Courier ' || dp.delivery_person_id::text) AS entity_name,
+            c.city_name,
+            COUNT(*) AS reviews,
+            ROUND(AVG(orv.rating)::numeric, 2) AS avg_rating
+          FROM order_reviews orv
+          JOIN orders             o  ON o.order_id            = orv.order_id
+          JOIN delivery_personnel dp ON dp.delivery_person_id = o.delivery_person_id
+          JOIN cities             c  ON c.city_id             = dp.city_id
+          WHERE orv.posted_at >= NOW() - make_interval(mins => $1::int)
+          GROUP BY dp.delivery_person_id, entity_name, c.city_name
+          ORDER BY reviews DESC
+          LIMIT $2
+        """, minutes, limit)
+    return [dict(r) for r in rows]
+
+from typing import Optional, Literal
+
+@app.get("/api/top/dishes")
+async def top_dishes(
+        minutes: int = 1440,
+        city: Optional[str] = None,
+        limit: int = 10,
+        metric: Literal["units","revenue"] = "revenue"
+):
+    """
+    Top dishes by units or revenue in the last `minutes`.
+    """
+    order_by = "units" if metric == "units" else "revenue"
+
+    q = f"""
+    WITH recent_completed AS (
+      SELECT o.order_id
+      FROM orders o
+      WHERE o.status = 'Completed'
+        -- Use a simpler, robust window; switch back to completion-time if you prefer
+        AND o.order_timestamp >= NOW() - ($1::int * interval '1 minute')
+    )
+    SELECT
+      mi.item_name                             AS dish,
+      COUNT(*)::int                            AS units,
+      COALESCE(SUM(oi.unit_price * oi.qty),0)::float AS revenue,
+      c.city_name
+    FROM order_items oi
+    JOIN recent_completed rc ON rc.order_id = oi.order_id
+    JOIN orders o       ON o.order_id       = oi.order_id
+    JOIN restaurants r  ON r.restaurant_id  = o.restaurant_id
+    JOIN cities c       ON c.city_id        = r.city_id
+    JOIN menu_items mi  ON mi.item_id       = oi.menu_item_id
+    WHERE ($2::text IS NULL OR c.city_name = $2)
+    GROUP BY mi.item_name, c.city_name
+    ORDER BY {order_by} DESC
+    LIMIT $3;
+    """
+
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, minutes, city, limit)
+    return [dict(r) for r in rows]
+
+
+
+@app.get("/api/restaurants/live")
+async def restaurants_live(city: Optional[str] = None, limit: int = 50):
+    q = """
+    SELECT
+      ui.restaurant_id,
+      COALESCE(c.city_name, ui.city_name) AS city_name,
+      COALESCE(r.name, ('#' || ui.restaurant_id)::text) AS restaurant_name,
+
+      COALESCE((ui.payload->>'orders_last_15m')::int, 0) AS orders_last_15m,
+      COALESCE((ui.payload->>'avg_prep_time_last_hour')::numeric, 0)::double precision AS avg_prep_time_min,
+      COALESCE((ui.payload->>'is_promo_active')::boolean, false) AS is_promo_active,
+
+      COALESCE(
+        (ui.payload->>'report_timestamp')::bigint,
+        CAST(EXTRACT(EPOCH FROM ui.last_update)*1000 AS bigint)
+      ) AS updated_ms
+
+    FROM ops.restaurant_status_ui ui
+    LEFT JOIN restaurants r ON r.restaurant_id = ui.restaurant_id
+    LEFT JOIN cities      c ON c.city_id       = r.city_id
+    WHERE ($1::text IS NULL OR COALESCE(c.city_name, ui.city_name) = $1)
+    ORDER BY orders_last_15m DESC NULLS LAST, updated_ms DESC
+    LIMIT $2
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, city, limit)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/restaurants/trend")
+async def restaurant_trend(restaurant_id: int, hours: int = 6):
+    q = """
+    SELECT ts,
+           orders_last_15m,
+           avg_prep_time
+    FROM ops.restaurant_status_log
+    WHERE restaurant_id = $1
+      AND ts >= NOW() - ($2::int || ' hours')::interval
+    ORDER BY ts ASC
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, restaurant_id, hours)
+    return [dict(r) for r in rows]
+
+from typing import Optional
+
+@app.get("/api/restaurants/load_map")
+async def restaurants_load_map(city: Optional[str] = None, limit: int = 400):
+    """
+    Latest per-restaurant load for map pins.
+    load_score ~ 0..100 blended from orders_last_15m and avg_prep_time_last_hour.
+    Uses restaurant lat/lon if present; otherwise falls back to city lat/lon.
+    """
+    q = """
+    WITH latest AS (
+      SELECT ui.restaurant_id,
+             COALESCE((ui.payload->>'orders_last_15m')::int, 0) AS orders15,
+             COALESCE((ui.payload->>'avg_prep_time_last_hour')::numeric, 0)::double precision AS prep,
+             COALESCE((ui.payload->>'report_timestamp')::bigint,
+                      (EXTRACT(EPOCH FROM ui.last_update)*1000)::bigint) AS updated_ms
+      FROM ops.restaurant_status_ui ui
+    ),
+    joined AS (
+      SELECT r.restaurant_id,
+             r.name,
+             c.city_name,
+             COALESCE(r.latitude,  c.latitude)  AS lat,
+             COALESCE(r.longitude, c.longitude) AS lon,
+             l.orders15, l.prep, l.updated_ms
+      FROM restaurants r
+      JOIN cities c ON c.city_id = r.city_id
+      JOIN latest l ON l.restaurant_id = r.restaurant_id
+      WHERE ($1::text IS NULL OR c.city_name = $1)
+        AND COALESCE(r.latitude,  c.latitude)  IS NOT NULL
+        AND COALESCE(r.longitude, c.longitude) IS NOT NULL
+    ),
+    norms AS (
+      SELECT *,
+             NULLIF(MAX(orders15) OVER (), 0) AS max_o,
+             NULLIF(MAX(prep)     OVER (), 0) AS max_p
+      FROM joined
+    )
+    SELECT
+      restaurant_id,
+      name        AS restaurant_name,
+      city_name,
+      lat, lon,
+      updated_ms,
+      orders15,
+      prep,
+      -- blend: 60% orders intensity, 40% prep-time pressure (capped)
+      ROUND( LEAST(100,
+           100 * ( 0.6 * (orders15 / COALESCE(max_o,1))
+                 + 0.4 * (prep / GREATEST(COALESCE(max_p,1), 20)) )
+      )::numeric, 0) AS load_score
+    FROM norms
+    ORDER BY load_score DESC NULLS LAST
+    LIMIT $2;
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, city, limit)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/couriers/live")
+async def couriers_live(city: Optional[str] = None, limit: int = 50):
+    q = """
+    WITH recent_city AS (
+      SELECT o.delivery_person_id, c.city_name, MAX(o.order_timestamp) AS last_ts
+      FROM orders o
+      JOIN cities c ON c.city_id = o.city_id
+      WHERE o.order_timestamp >= NOW() - INTERVAL '6 hours'
+      GROUP BY o.delivery_person_id, c.city_name
+    )
+    SELECT
+      ui.delivery_person_id AS courier_id,
+      COALESCE(rc.city_name, ui.city_name) AS city_name,
+      COALESCE((ui.payload->>'active_deliveries_count')::int, 0) AS active_deliveries,
+      COALESCE((ui.payload->>'avg_delivery_speed_today')::float, NULL) AS avg_speed_kmh,
+      COALESCE(
+        (ui.payload->>'report_timestamp')::bigint,
+        CAST(EXTRACT(EPOCH FROM ui.last_update)*1000 AS bigint)
+      ) AS updated_ms
+    FROM ops.courier_activity_ui ui
+    LEFT JOIN recent_city rc ON rc.delivery_person_id = ui.delivery_person_id
+    WHERE ($1::text IS NULL OR COALESCE(rc.city_name, ui.city_name) = $1)
+    ORDER BY updated_ms DESC
+    LIMIT $2
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, city, limit)
+    return [dict(r) for r in rows]
+
+
+
+@app.post("/api/restaurants/pause")
+async def pause_restaurant(restaurant_id: int, minutes: int = 15):
+    # record an action + (optionally) publish to Kafka ops.decisions here
+    async with pool.acquire() as con:
+        await con.execute("""
+          INSERT INTO ops.actions_log(ts, user_name, action, params, result)
+          VALUES (NOW(), 'ops', 'PAUSE_RESTAURANT', jsonb_build_object('restaurant_id',$1,'minutes',$2), 'queued')
+        """, restaurant_id, minutes)
+    return {"ok": True}
+
+
+@app.post("/api/couriers/nudge")
+async def couriers_nudge(courier_id: int = Body(...), reason: str = Body("slow"), user: str = Body("ops")):
+    async with pool.acquire() as con:
+        await con.execute("""
+          INSERT INTO ops.actions_log(ts, user_name, action, params, result)
+          VALUES (NOW(), $1, 'NUDGE_COURIER', jsonb_build_object('courier_id',$2,'reason',$3), 'queued')
+        """, user, courier_id, reason)
+    try:
+        await publish_decision("ops.decisions", {
+            "kind":"NUDGE_COURIER","courier_id": courier_id, "reason": reason,
+            "decided_by": user, "ts": time.time()
+        })
+    except Exception:
+        pass
+    return {"ok": True}
+
+# --- WEATHER ENDPOINTS -----------------------------------------------------
+from typing import Optional
+
+@app.get("/api/weather/orders")
+async def weather_orders(
+        minutes: int = 60,
+        city: Optional[str] = None,
+        rain: Optional[str] = None,   # "true" | "false" | None
+        limit: int = 200
+):
+    q = """
+    SELECT
+      owe.order_id,
+      r.name AS restaurant_name,
+      c.city_name,
+      owe.weather,
+      owe.is_rain,
+      owe.is_rush_hour,
+      owe.time_taken_minutes,
+      owe.event_time,
+      (EXTRACT(EPOCH FROM owe.event_time)*1000)::bigint AS event_ms
+    FROM order_weather_enriched owe
+    JOIN restaurants r ON r.restaurant_id = owe.restaurant_id
+    JOIN cities      c ON c.city_id      = owe.city_id
+    WHERE owe.event_time >= NOW() - ($1::int || ' minutes')::interval
+      AND ($2::text IS NULL OR c.city_name = $2)
+      AND (
+            $3::text IS NULL
+         OR ($3='true'  AND owe.is_rain IS TRUE)
+         OR ($3='false' AND owe.is_rain IS FALSE)
+      )
+    ORDER BY owe.event_time DESC
+    LIMIT $4::int;
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, minutes, city, rain, limit)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/weather/impact")
+async def weather_impact(hours: int = 24, city: Optional[str] = None):
+    """
+    Aggregates: count + avg time by rain/rush flags.
+    """
+    q = """
+    WITH src AS (
+      SELECT *
+      FROM order_weather_enriched owe
+      WHERE owe.event_time >= NOW() - ($1::int || ' hours')::interval
+    )
+    SELECT
+      c.city_name,
+      s.is_rain,
+      s.is_rush_hour,
+      COUNT(*)::int                                   AS orders,
+      ROUND(AVG(s.time_taken_minutes)::numeric, 2)    AS avg_minutes
+    FROM src s
+    JOIN restaurants r ON r.restaurant_id = s.restaurant_id
+    JOIN cities      c ON c.city_id      = r.city_id
+    WHERE ($2::text IS NULL OR c.city_name = $2)
+    GROUP BY c.city_name, s.is_rain, s.is_rush_hour
+    ORDER BY c.city_name, s.is_rain DESC, s.is_rush_hour DESC;
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, hours, city)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/weather/city_heat")
+async def weather_city_heat(minutes: int = 60):
+    """
+    City bubbles for a Leaflet map: count, avg time, rain ratio.
+    Assumes cities(latitude, longitude) columns exist (you said they do 👍).
+    """
+    q = """
+    SELECT
+      c.city_name,
+      c.latitude  AS lat,
+      c.longitude AS lon,
+      COUNT(*)::int                                                  AS orders,
+      ROUND(AVG(owe.time_taken_minutes)::numeric, 2)                 AS avg_minutes,
+      COALESCE(AVG(CASE WHEN owe.is_rain THEN 1.0 ELSE 0.0 END), 0)  AS rain_ratio
+    FROM order_weather_enriched owe
+    JOIN restaurants r ON r.restaurant_id = owe.restaurant_id
+    JOIN cities      c ON c.city_id      = r.city_id
+    WHERE owe.event_time >= NOW() - ($1::int || ' minutes')::interval
+    GROUP BY c.city_name, c.latitude, c.longitude
+    ORDER BY orders DESC;
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, minutes)
     return [dict(r) for r in rows]
 

@@ -9,10 +9,27 @@ import SlaList from "./SlaList";
 import SentimentPanel from "./SentimentPanel";
 import RevenuePanel from "./RevenuePanel";
 import ThemeToggle from "./ThemeToggle";
+import { WSProvider } from "./wsBus";
+import { CityProvider, useCity } from "./CityContext";
+import LiveOrders from "./LiveOrders";
+import SmartAlerts from "./SmartAlerts";
+import Heatmap from "./Heatmap";
+import RevenueAnalytics from "./RevenueAnalytics";
+import TopEntities from "./TopEntities";
+import RestaurantsLive from "./RestaurantsLive";
+import CouriersLive from "./CouriersLive";
+import RestaurantMap from "./RestaurantMap";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import WeatherInsights from "./WeatherInsights";
+import WeatherMap from "./WeatherMap";
+
 
 /* --------------------------- CONFIG --------------------------- */
-const API = import.meta.env.VITE_API || `http://${window.location.hostname}:8001`;
-const WS  = API.replace(/^http/, "ws") + "/ws";
+const defaultBase = `${location.protocol}//${location.hostname}:8001`;
+const envBase = (import.meta.env.VITE_API || "").trim();
+export const API = envBase && !/^https?:\/\/webapi(:\d+)?/i.test(envBase) ? envBase : defaultBase;
+export const WS  = API.replace(/^http/i, "ws") + "/ws";
+
 
 /* ------------------------ SHARED HELPERS ---------------------- */
 const cache = {
@@ -41,6 +58,16 @@ const LAST_GOOD = {
     kpi: null,  // { ...k, _ts }
     sla: []
 };
+
+const queryClient = new QueryClient({
+       defaultOptions: {
+         queries: {
+               staleTime: 15_000,             // data considered fresh for 15s
+                   refetchOnWindowFocus: false,   // avoid surprise refetches when tab focused
+                   retry: 1
+             }
+       }
+ });
 
 /* --------------------- REUSABLE HOOKS ------------------------- */
 function useWebSocket(url) {
@@ -73,28 +100,17 @@ function useLocalToasts() {
 function Tiles({ kpi, loading }) {
     const showSkel = loading || !kpi || !kpi._ts;
     if (showSkel) {
-        return (
-            <div className="kpi-grid">
-                <div className="card kpi skeleton kpi-skel"></div>
-                <div className="card kpi skeleton kpi-skel"></div>
-                <div className="card kpi skeleton kpi-skel"></div>
-            </div>
-        );
+        return <div className="kpi-grid">
+            <div className="card kpi skeleton kpi-skel"></div>
+            <div className="card kpi skeleton kpi-skel"></div>
+            <div className="card kpi skeleton kpi-skel"></div>
+        </div>;
     }
     return (
         <div className="kpi-grid">
-            <div className="card kpi">
-                <div>Orders/min</div>
-                <b>{kpi.orders_per_min}</b>
-            </div>
-            <div className="card kpi">
-                <div>SLA today</div>
-                <b>{kpi.sla_today}</b>
-            </div>
-            <div className="card kpi">
-                <div>ETA MAE 1h</div>
-                <b>{kpi.eta_mae_1h}</b><span style={{marginLeft:6}}>min</span>
-            </div>
+            <div className="card kpi"><div>Orders/min</div><b>{kpi.orders_per_min}</b></div>
+            <div className="card kpi"><div>SLA today</div><b>{kpi.sla_today}</b></div>
+            <div className="card kpi"><div>ETA MAE 1h</div><b>{kpi.eta_mae_1h}</b><span style={{marginLeft:6}}>min</span></div>
         </div>
     );
 }
@@ -144,8 +160,9 @@ function ActionBar({ onToast }) {
             <b>Mute</b>
             <input type="number" value={minutes} min={5} max={120} onChange={e=>setMinutes(+e.target.value)} />
             <button className="btn" disabled={loading==='mute'} onClick={()=>post("/api/actions/mute_city",{city, minutes},'mute')}>Mute alerts</button>
-            <button className="btn" disabled={loading==='unmute'} onClick={()=>post("/api/actions/unmute_city",{city},'unmute')}>Unmute</button>
-            {muted ? <span className="pill">Muted until {new Date(muted.until).toLocaleTimeString()}</span> : null}
+            <button className="btn ghost" disabled={loading==='unmute'} onClick={()=>post("/api/actions/unmute_city",{city},'unmute')}>Unmute</button>
+            {muted ? <span className="badge">🔕 Muted until {new Date(muted.until).toLocaleTimeString()}</span>
+                : null}
 
             <b>Surge x</b>
             <input type="number" step="0.5" value={mult} min={1} max={5} onChange={e=>setMult(+e.target.value)} />
@@ -239,7 +256,47 @@ function OverviewPage() {
 
     return (
         <>
-            <Tiles kpi={kpi} loading={loading} />
+            <div className="hero">
+                <div>
+                    <div className="badge">⚡ Real-Time Ops</div>
+                    <h1>Real-Time Operations <span style={{color:"var(--primary)"}}>Command Center</span></h1>
+                    <p>Monitor, analyze, and optimize delivery performance with live insights.</p>
+                </div>
+                <div className="cta">
+                    <button className="btn" onClick={()=>window.scrollTo({top:999,behavior:'smooth'})}>View Analytics</button>
+                    <button className="btn ghost" onClick={()=>navigate('/dashboards')}>Dashboards</button>
+                </div>
+            </div>
+            <div className="stats">
+                <div className="stat">
+                    <div className="sub">Orders/min</div>
+                    <div className="val">{kpi?.orders_per_min ?? 0}</div>
+                </div>
+                <div className="stat">
+                    <div className="sub">SLA today</div>
+                    <div className="val">{kpi?.sla_today ?? 0}</div>
+                </div>
+                <div className="stat">
+                    <div className="sub">ETA MAE 1h</div>
+                    <div className="val">{kpi?.eta_mae_1h ?? 0}<span style={{fontSize:14,opacity:.7}}> min</span></div>
+                </div>
+                <div className="stat">
+                    <div className="sub">System</div>
+                    <div className="val" style={{fontSize:18}}>
+                        <span className="badge" style={{background:'rgba(34,197,94,.14)', color:'#34d399', borderColor:'rgba(34,197,94,.3)'}}>● Healthy</span>
+                    </div>
+                </div>
+            </div>
+            <div className="grid2">
+                <LiveOrders />
+                <SmartAlerts />
+            </div>
+            <div className="row2 full">
+                <RestaurantsLive />
+                <CouriersLive />
+            </div>
+
+
             <ActionBar onToast={push} />
 
             <h3>Live Alerts</h3>
@@ -262,10 +319,15 @@ function OverviewPage() {
                 <PressureTop />
                 <Recommendations />
             </div>
+            <div className="row2 full">
+                <RestaurantMap />
+            </div>
 
             <div className="row2 full">
                 <div className="card"><SentimentPanel /></div>
-                <div className="card"><RevenuePanel /></div>
+                {/*<div className="card"><RevenuePanel /></div>*/}
+                <div className="card"><RevenueAnalytics /></div>
+
             </div>
 
             <div className="full">
@@ -277,6 +339,29 @@ function OverviewPage() {
                     <div key={t.id} className={`toast ${t.kind}`}>{t.text}</div>
                 ))}
             </div>
+
+
+
+            {/*<div className="row2 full">*/}
+            {/*    <RevenueAnalytics />*/}
+            {/*</div>*/}
+
+            <div
+                className="row2 full"
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "minmax(420px, 0.9fr) 1.6fr", // map | Top Today
+                    gap: 16,
+                    alignItems: "start"
+                }}
+            >
+                <Heatmap />
+                <div style={{ minWidth: 0 }}>
+                    <TopEntities />
+                </div>
+            </div>
+
+
         </>
     );
 }
@@ -331,33 +416,67 @@ function ActivityPage() {
         </div>
     );
 }
+function CityChip(){
+    const { city, setCity } = useCity();
+    const cities = ["Tunis","Ariana","Ben Arous","Manouba","Sousse","Monastir","Nabeul","Sfax","Gabes","Medenine","Kairouan","Sidi Bouzid","Kasserine","Kef","Bizerte","Zaghouan","Siliana","Gafsa","Tozeur","Kebili","Tataouine","Jendouba","Beja","Mahdia"];
+    return (
+        <div className="city-chip">
+            <span className="pill">City</span>
+            <select value={city} onChange={e=>setCity(e.target.value)}>{cities.map(c=><option key={c}>{c}</option>)}</select>
+        </div>
+    );
+}
+
+
+
 
 /* ------------------------ APP SHELL --------------------------- */
-export default function App() {
+function Shell(){
     const navigate = useNavigate();
-    const { pathname } = useLocation();
-    useEffect(()=>{ if (pathname==="/") navigate("/overview"); },[pathname, navigate]);
+    useEffect(()=>{ if (location.pathname==="/") navigate("/overview"); },[]);
     return (
         <div className="wrap">
-            <nav className="nav">
+            <nav className="nav" aria-label="Primary">
                 <ThemeToggle />
                 <div className="brand">Ops Command Center</div>
-                <div className="links">
+                <CityChip/>
+                <div className="links" role="navigation">
                     <NavLink to="/overview" className={({isActive})=>isActive?"active":""}>Overview</NavLink>
                     <NavLink to="/dashboards" className={({isActive})=>isActive?"active":""}>Dashboards</NavLink>
                     <NavLink to="/activity" className={({isActive})=>isActive?"active":""}>Activity</NavLink>
+                    <NavLink to="/weather" className={({isActive})=>isActive?"active":""}>Weather</NavLink>
                     <NavLink to="/replay" className={({isActive})=>isActive?"active":""}>Replay</NavLink>
                     <NavLink to="/scenarios" className={({isActive})=>isActive?"active":""}>Scenarios</NavLink>
                 </div>
             </nav>
-
             <Routes>
                 <Route path="/overview" element={<OverviewPage/>} />
-                <Route path="/dashboards" element={<DashboardsPage/>} />
-                <Route path="/activity" element={<ActivityPage/>} />
+                <Route path="/dashboards" element={<DashboardsPage />} />
+                <Route path="/activity" element={<ActivityPage />} />
+                <Route
+                    path="/weather"
+                    element={
+                        <div className="grid" style={{ gridTemplateColumns: "1.2fr 1fr", alignItems: "start" }}>
+                            <WeatherInsights />
+                            <WeatherMap />
+                        </div>
+                    }
+                />
                 <Route path="/replay" element={<Replay/>} />
                 <Route path="/scenarios" element={<Scenarios/>} />
             </Routes>
         </div>
+    );
+}
+
+export default function App(){
+    return (
+        <QueryClientProvider client={queryClient}>
+                   <WSProvider url={WS}>
+                     <CityProvider>
+                       <Shell/>
+                     </CityProvider>
+                   </WSProvider>
+        </QueryClientProvider>
     );
 }

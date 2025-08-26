@@ -16,10 +16,11 @@ export default function RevenuePanel() {
         let alive = true;
         const load = async () => {
             try {
-                const [k, c] = await Promise.all([
+                const [k, cWrap] = await Promise.all([
                     fetch(`${API}/api/revenue/kpis?minutes=${minutes}`).then(r=>r.json()),
                     fetch(`${API}/api/revenue/by_city?minutes=${minutes}`).then(r=>r.json()),
                 ]);
+                const c = Array.isArray(cWrap.rows) ? cWrap.rows : cWrap; // backward compat
                 if (!alive) return;
                 setKpis(k);   writeCache(`rev_kpis_${minutes}`, k);
                 setByCity(c); writeCache(`rev_city_${minutes}`, c);
@@ -57,15 +58,22 @@ export default function RevenuePanel() {
 
             <div className="card">
                 <h4>GMV by City (window)</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={byCity} margin={{ left: 40, right: 10, top: 8, bottom: 0 }} barCategoryGap="20%">
+                <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={byCity} margin={{ left: 24, right: 8, top: 6 }}>
+                        <defs>
+                            <linearGradient id="gmvGrad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#38bdf8"/>
+                                <stop offset="100%" stopColor="#0ea5e9"/>
+                            </linearGradient>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="city_name" tick={{ fill: 'var(--muted)', fontSize: 12 }} tickLine={false}/>
-                        <YAxis tick={{ fill: 'var(--muted)', fontSize: 12 }} tickLine={false}/>
+                        <XAxis dataKey="city_name" tick={{ fontSize: 12 }} tickLine={false}/>
+                        <YAxis tick={{ fontSize: 12 }} tickLine={false}/>
                         <Tooltip formatter={(v)=>fmt(v)} />
-                        <Bar dataKey="gmv" fill="var(--primary)" radius={[6,6,0,0]} />
+                        <Bar dataKey="gmv" fill="url(#gmvGrad)" radius={[6,6,0,0]} />
                     </BarChart>
                 </ResponsiveContainer>
+
 
             </div>
         </div>

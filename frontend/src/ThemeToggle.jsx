@@ -18,7 +18,8 @@ export default function ThemeToggle(){
     const next = () => setMode(m => (m === "light" ? "dark" : "light"));
 
     return (
-        <button className="btn secondary" onClick={next} title="Toggle theme" style={{padding:"8px 10px"}}>
+        <button className="btn secondary" onClick={next} title="Toggle theme" style={{padding:"8px 10px"}}
+                aria-pressed={mode==="dark"} aria-label="Toggle color theme (t)"onKeyDown={(e)=>{ if (e.key.toLowerCase()==="t") next(); }}>
             {mode === "light" ? "🌙 Dark" : "☀️ Light"}
         </button>
     );

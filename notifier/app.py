@@ -3,6 +3,19 @@ import asyncpg, httpx
 from aiokafka import AIOKafkaConsumer
 from aiokafka.admin import AIOKafkaAdminClient
 import time
+from prometheus_client import Counter, Histogram, Gauge, start_http_server
+
+MSG_CONSUMED = Counter("notifier_msg_consumed_total", "Messages consumed", ["topic"])
+HANDLER_ERRS = Counter("notifier_handler_errors_total", "Handler errors", ["topic"])
+WS_BROADCASTS = Counter("notifier_ws_broadcast_total", "WS messages broadcast", ["type"])
+DB_LATENCY = Histogram("notifier_db_latency_seconds", "DB op latency", ["op"])
+
+def typed_event(title, typ, severity="info", city=None, payload=None):
+    return {
+        "type": typ, "title": title, "severity": severity,
+        "city": city, "payload": payload or {}
+    }
+
 
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "kafka:9092")
 TOPICS = [t.strip() for t in os.getenv("TOPICS", "sla_violations").split(",") if t.strip()]
@@ -21,67 +34,115 @@ async def broadcast(title: str, typ: str, severity: str, details: dict):
             pass
 
 async def handle_topic(pool, topic: str, payload: dict):
-    async with pool.acquire() as con:
-        if topic == "sla_violations":
-            if await is_city_muted(pool, payload.get("city_name")):
-                return  # muted city, skip alert
-            title = f"SLA breach order {payload.get('order_id')}"
-            await con.execute("""
-              INSERT INTO ops.notifications(type, severity, title, details)
-              VALUES ('SLA','warning',$1,$2::jsonb)
-            """, title, json.dumps(payload))
-            await broadcast(title, "SLA", "warning", payload)
+    MSG_CONSUMED.labels(topic).inc()
+    try:
+        async with pool.acquire() as con:
+            t0 = time.time()
 
-        elif topic == "dynamic_sla_violations":
-            await con.execute("""
-              INSERT INTO ops.dynamic_sla_ui(order_id, city_name, payload)
-              VALUES ($1, $2, $3::jsonb)
-            """, payload.get("order_id"), payload.get("city_name"), json.dumps(payload))
+            if topic == "sla_violations":
+                if await is_city_muted(pool, payload.get("city_name")):
+                    return
+                title = f"SLA breach order {payload.get('order_id')}"
+                await con.execute("""
+                  INSERT INTO ops.notifications(type, severity, title, details)
+                  VALUES ('SLA','warning',$1,$2::jsonb)
+                """, title, json.dumps(payload))
+                WS_BROADCASTS.labels("sla_violation").inc()
+                await broadcast(typed_event(title, "sla_violation", "warning",
+                                            city=payload.get("city_name"), payload=payload))
 
-        elif topic == "eta_predictions":
-            await con.execute("""
-              INSERT INTO ops.eta_predictions_ui(order_id, city_name, payload)
-              VALUES ($1, $2, $3::jsonb)
-              ON CONFLICT (order_id) DO UPDATE SET
-                city_name = EXCLUDED.city_name,
-                payload = EXCLUDED.payload,
-                event_time = NOW()
-            """, payload.get("order_id"), payload.get("city_name"), json.dumps(payload))
+            elif topic == "eta_predictions":
+                await con.execute("""
+                  INSERT INTO ops.eta_predictions_ui(order_id, city_name, payload)
+                  VALUES ($1,$2,$3::jsonb)
+                  ON CONFLICT (order_id) DO UPDATE
+                    SET city_name=EXCLUDED.city_name, payload=EXCLUDED.payload, event_time=NOW()
+                """, payload.get("order_id"), payload.get("city_name"), json.dumps(payload))
+                WS_BROADCASTS.labels("eta_prediction").inc()
+                await broadcast(typed_event(f"ETA update {payload.get('order_id')}",
+                                            "eta_prediction", "info",
+                                            city=payload.get("city_name"), payload=payload))
 
+            elif topic == "courier_features_live":
+                cid = payload.get("delivery_person_id")
+                ts_ms = payload.get("report_timestamp") or 0
+                # optional city enrichment: if courier has a home/base city; else derive from last order city if you track it.
+                city = await con.fetchval(
+                    "SELECT city_name FROM courier_profiles WHERE delivery_person_id=$1",
+                    cid
+                )
+                await con.execute("""
+                  INSERT INTO ops.courier_activity_ui (delivery_person_id, city_name, payload, last_update)
+                  VALUES ($1,$2,$3::jsonb, to_timestamp($4/1000.0))
+                  ON CONFLICT (delivery_person_id) DO UPDATE
+                    SET city_name=EXCLUDED.city_name,
+                        payload=EXCLUDED.payload,
+                        last_update=EXCLUDED.last_update
+                """, cid, city, json.dumps(payload), ts_ms)
+                await con.execute("""
+                  INSERT INTO ops.courier_activity_log
+                    (ts, delivery_person_id, city_name, active_deliveries, avg_speed_kmh, payload)
+                  VALUES (to_timestamp($1/1000.0), $2, $3, $4, $5, $6::jsonb)
+                """, ts_ms, cid, city,
+                                  payload.get("active_deliveries_count"),
+                                  payload.get("avg_delivery_speed_today"),
+                                  json.dumps(payload))
+                await broadcast(typed_event(
+                    title=f"Courier update c#{cid}",
+                    typ="courier_update",
+                    severity="info",
+                    city=city,
+                    payload=payload
+                ))
 
-        elif topic == "courier_features_live":
-            # existing upsert
-            await con.execute("""
-              INSERT INTO ops.courier_activity_ui(delivery_person_id, city_name, payload)
-              VALUES ($1, $2, $3::jsonb)
-              ON CONFLICT (delivery_person_id) DO UPDATE SET
-                city_name = EXCLUDED.city_name,
-                payload = EXCLUDED.payload,
-                last_update = NOW()
-            """, payload.get("delivery_person_id"), payload.get("city_name"), json.dumps(payload))
-            # NEW: append log for history
-            await con.execute("""
-              INSERT INTO ops.courier_activity_log(delivery_person_id, city_name, active_deliveries, payload)
-              VALUES ($1, $2, COALESCE(($3::jsonb->>'active_deliveries')::int, NULL), $3::jsonb)
-            """, payload.get("delivery_person_id"), payload.get("city_name"), json.dumps(payload))
+            elif topic == "restaurant_features_live":
+                rid = payload.get("restaurant_id")
+                ts_ms = payload.get("report_timestamp") or 0
+                # lookup city once (cache this in-process if you like)
+                city = await con.fetchval(
+                    "SELECT c.city_name FROM restaurants r JOIN cities c ON c.city_id=r.city_id WHERE r.restaurant_id=$1",
+                    rid
+                )
+                await con.execute("""
+                  INSERT INTO ops.restaurant_status_ui (restaurant_id, city_name, payload, last_update)
+                  VALUES ($1,$2,$3::jsonb, to_timestamp($4/1000.0))
+                  ON CONFLICT (restaurant_id) DO UPDATE
+                    SET city_name=EXCLUDED.city_name,
+                        payload=EXCLUDED.payload,
+                        last_update=EXCLUDED.last_update
+                """, rid, city, json.dumps(payload), ts_ms)
+                await con.execute("""
+                  INSERT INTO ops.restaurant_status_log
+                    (ts, restaurant_id, city_name, orders_last_15m, avg_prep_time, is_promo_active, payload)
+                  VALUES (to_timestamp($1/1000.0), $2, $3, $4, $5, $6, $7::jsonb)
+                """, ts_ms, rid, city,
+                                  payload.get("orders_last_15m"),
+                                  payload.get("avg_prep_time_last_hour"),
+                                  payload.get("is_promo_active"),
+                                  json.dumps(payload))
+                await broadcast(typed_event(
+                    title=f"Restaurant update r#{rid}",
+                    typ="restaurant_update",
+                    severity="info",
+                    city=city,
+                    payload=payload
+                ))
 
-        elif topic == "restaurant_features_live":
-            # existing upsert
-            await con.execute("""
-                  INSERT INTO ops.restaurant_status_ui(restaurant_id, city_name, payload)
+            elif topic == "dynamic_sla_violations":
+                await con.execute("""
+                  INSERT INTO ops.dynamic_sla_ui(order_id, city_name, payload)
                   VALUES ($1, $2, $3::jsonb)
-                  ON CONFLICT (restaurant_id) DO UPDATE SET
-                    city_name = EXCLUDED.city_name,
-                    payload = EXCLUDED.payload,
-                    last_update = NOW()
-                """, payload.get("restaurant_id"), payload.get("city_name"), json.dumps(payload))
-            # NEW: append log for history
-            await con.execute("""
-                  INSERT INTO ops.restaurant_status_log(restaurant_id, city_name, open, est_prep_time_min, payload)
-                  VALUES ($1, $2, COALESCE(($3::jsonb->>'open')::bool, NULL),
-                                COALESCE(($3::jsonb->>'est_prep_time_min')::int, NULL),
-                                $3::jsonb)
-                """, payload.get("restaurant_id"), payload.get("city_name"), json.dumps(payload))
+                """, payload.get("order_id"), payload.get("city_name"), json.dumps(payload))
+                WS_BROADCASTS.labels("dynamic_sla").inc()
+                await broadcast(typed_event("Dynamic SLA", "dynamic_sla", "warning",
+                                            city=payload.get("city_name"), payload=payload))
+
+            DB_LATENCY.labels("handle_topic").observe(time.time()-t0)
+
+    except Exception as e:
+        HANDLER_ERRS.labels(topic).inc()
+        print(f"[notifier] handler error topic={topic}: {e}")
+
 
 
 async def wait_for_topics():
@@ -172,6 +233,12 @@ async def main():
 if __name__ == "__main__":
     try:
         import uvloop; uvloop.install()
+    except Exception:
+        pass
+    # optional: expose metrics
+    try:
+        start_http_server(int(os.getenv("PROM_PORT","8008")))
+        print("[notifier] prometheus on port", os.getenv("PROM_PORT","8008"))
     except Exception:
         pass
     asyncio.run(main())
