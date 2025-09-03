@@ -11,6 +11,9 @@ from fastapi import Query
 from typing import Optional
 from fastapi import Body
 
+from contextlib import suppress
+from aiokafka import AIOKafkaConsumer
+
 _producer: Optional[AIOKafkaProducer] = None
 # Optional JWT auth (dev-friendly: allow if secret not set)
 try:
@@ -20,6 +23,7 @@ except Exception:
 
 JWT_SECRET = os.getenv("JWT_SECRET")
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP", "kafka:9092")
+COURIER_TOPIC   = os.getenv("COURIER_FEATURES_TOPIC", "courier_features_live")
 USE_FLINK_SINKS = os.getenv("USE_FLINK_SINKS", "false").lower() in ("1","true","yes")
 
 
@@ -41,6 +45,46 @@ app.add_middleware(
 pool: asyncpg.Pool | None = None
 clients: set[WebSocket] = set()
 
+async def _consume_courier_features():
+    consumer = AIOKafkaConsumer(
+        COURIER_TOPIC,
+        bootstrap_servers=KAFKA_BOOTSTRAP,
+        group_id="webapi-courier-ui-upserter",
+        enable_auto_commit=True,
+        auto_offset_reset="latest",
+        key_deserializer=lambda m: json.loads(m.decode("utf-8")) if m else None,
+        value_deserializer=lambda m: json.loads(m.decode("utf-8")) if m else None,
+    )
+    await consumer.start()
+    try:
+        batch, last = [], 0.0
+        async for msg in consumer:
+            key = msg.key or {}
+            val = msg.value or {}
+            courier_id = key.get("delivery_person_id") or val.get("delivery_person_id")
+            if not courier_id:
+                continue
+            payload = {
+                "report_timestamp": val.get("report_timestamp"),
+                "active_deliveries_count": val.get("active_deliveries_count"),
+                "avg_delivery_speed_today": val.get("avg_delivery_speed_today"),
+            }
+            batch.append((int(courier_id), json.dumps(payload)))
+            now = asyncio.get_event_loop().time()
+            if len(batch) >= 200 or now - last > 1.0:
+                async with pool.acquire() as con:
+                    await con.executemany(
+                        """
+                        INSERT INTO ops.courier_activity_ui (delivery_person_id, payload, last_update)
+                        VALUES ($1, $2::jsonb, NOW())
+                        ON CONFLICT (delivery_person_id)
+                        DO UPDATE SET payload = EXCLUDED.payload, last_update = NOW();
+                        """,
+                        batch,
+                    )
+                batch, last = [], now
+    finally:
+        await consumer.stop()
 # ------------------------------
 # Startup / shutdown
 # ------------------------------
@@ -56,9 +100,22 @@ async def on_start():
         await _producer.start()
     except Exception:
         _producer = None  # optional
+    # >>> ADDED: launch the Kafka -> Postgres upserter as a background task
+    app.state._courier_consumer = asyncio.create_task(_consume_courier_features())
+    print("[courier-consumer] started", flush=True)
 
 @app.on_event("shutdown")
 async def on_stop():
+    # >>> ADDED: cancel the background consumer cleanly
+    t = getattr(app.state, "_courier_consumer", None)
+    if t:
+        t.cancel()
+        from contextlib import suppress
+        import asyncio
+        with suppress(asyncio.CancelledError):
+            await t
+        print("[courier-consumer] stopped", flush=True)
+
     if pool: await pool.close()
     if _producer:
         try: await _producer.stop()
@@ -978,29 +1035,99 @@ async def ready():
         raise HTTPException(503, f"DB not ready: {e}")
     return {"status": "ready"}
 
+
+# webapi/app.py
 @app.get("/api/orders/live")
-async def orders_live(limit: int = 20):
+async def orders_live(limit: int = 30, cancel_window_min: int = 15):
     q = """
+    WITH shaped AS (
+      SELECT
+        o.order_id,
+        c.city_name,
+        r.name AS restaurant_name,
+
+        -- Treat Processing as Delivering after pickup_time passes
+        CASE
+          WHEN o.status = 'Processing'
+           AND o.pickup_time IS NOT NULL
+           AND NOW() >= o.pickup_time
+          THEN 'Delivering'
+          ELSE o.status
+        END AS status,
+
+        o.total_price::float                       AS price,
+        o.order_timestamp,
+        COALESCE(o.pickup_time, o.order_timestamp) AS started_at,
+        o.time_taken_minutes,
+
+        -- Planned end when we know both pieces
+        CASE
+          WHEN o.time_taken_minutes IS NOT NULL AND o.pickup_time IS NOT NULL
+          THEN o.pickup_time + (o.time_taken_minutes || ' minutes')::interval
+          ELSE NULL
+        END AS planned_end,
+
+        -- Elapsed minutes: for Cancelled use order_timestamp (pickup_time may be in the future)
+        CASE
+          WHEN o.status = 'Cancelled'
+          THEN GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (NOW() - o.order_timestamp)) / 60))::int
+          ELSE GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (NOW() - COALESCE(o.pickup_time, o.order_timestamp))) / 60))::int
+        END AS elapsed_min,
+
+        -- ETA remaining for live rows when we have a planned end
+        CASE
+          WHEN o.time_taken_minutes IS NOT NULL
+           AND o.pickup_time IS NOT NULL
+          THEN GREATEST(
+                 0,
+                 CEIL(EXTRACT(EPOCH FROM ((o.pickup_time + (o.time_taken_minutes||' minutes')::interval) - NOW())) / 60)
+               )::int
+          ELSE NULL
+        END AS eta_min,
+
+        -- live flag
+        CASE WHEN o.status = 'Processing'
+                  OR (o.status = 'Processing' AND o.pickup_time IS NOT NULL AND NOW() >= o.pickup_time)
+             THEN TRUE ELSE FALSE END AS is_live,
+
+        -- activity ts for sorting
+        GREATEST(
+          -- for cancels: order start
+          CASE WHEN o.status='Cancelled' THEN o.order_timestamp ELSE COALESCE(o.pickup_time, o.order_timestamp) END,
+          -- if we have a planned end, it might be the latest activity for live
+          COALESCE(
+            CASE
+              WHEN o.time_taken_minutes IS NOT NULL AND o.pickup_time IS NOT NULL
+              THEN o.pickup_time + (o.time_taken_minutes||' minutes')::interval
+              ELSE NULL
+            END,
+            COALESCE(o.pickup_time, o.order_timestamp)
+          )
+        ) AS activity_ts
+
+      FROM orders o
+      LEFT JOIN restaurants r ON r.restaurant_id = o.restaurant_id
+      LEFT JOIN cities      c ON c.city_id      = o.city_id
+      WHERE o.order_timestamp >= NOW() - INTERVAL '12 hours'
+        AND (
+          o.status = 'Processing'
+          OR (o.status = 'Cancelled'
+              AND o.order_timestamp >= NOW() - ($2::int || ' minutes')::interval)
+        )
+    )
     SELECT
-      o.order_id,
-      c.city_name,
-      r.name,
-      o.status,
-      o.total_price::float AS price,
-      o.order_timestamp,
-      COALESCE(o.pickup_time, o.order_timestamp) AS started_at,
-      COALESCE(o.time_taken_minutes, 0) AS eta_guess
-    FROM orders o
-    LEFT JOIN restaurants r ON r.restaurant_id = o.restaurant_id
-    LEFT JOIN cities      c ON c.city_id      = o.city_id         -- << key change
-    WHERE o.status <> 'Completed'
-      AND o.order_timestamp >= NOW() - INTERVAL '12 hours'
-    ORDER BY o.order_timestamp DESC
-    LIMIT $1
+      order_id, city_name, restaurant_name, status, price,
+      order_timestamp, started_at,
+      elapsed_min, eta_min, is_live
+    FROM shaped
+    ORDER BY is_live DESC, activity_ts DESC
+    LIMIT $1;
     """
     async with pool.acquire() as con:
-        rows = await con.fetch(q, limit)
+        rows = await con.fetch(q, limit, cancel_window_min)
     return [dict(r) for r in rows]
+
+
 
 
 @app.get("/api/alerts/active")
@@ -1079,25 +1206,68 @@ async def alerts_active():
 
 @app.get("/api/heatmap/cities")
 async def heatmap_cities(minutes: int = 60):
+    """
+    Prefer latest per-city rows from ops.city_pressure_minute_mv (by city_name).
+    If missing/stale, fall back to last-5m orders to compute:
+      - opm  ≈ orders_last_5m / 5.0
+      - pressure scaled 0..100 across cities based on those orders.
+    """
     q = """
-    WITH l AS (
+    -- latest MV record per city *by name*
+    WITH mv AS (
       SELECT DISTINCT ON (city_name)
              city_name, ts, pressure_score, order_count
       FROM ops.city_pressure_minute_mv
       WHERE ts >= NOW() - make_interval(mins => $1::int)
       ORDER BY city_name, ts DESC
+    ),
+    -- fallback: count orders per city in the last 5 minutes
+    recent AS (
+      SELECT c.city_name,
+             COUNT(*)::int AS orders_last_5m
+      FROM orders o
+      JOIN restaurants r ON r.restaurant_id = o.restaurant_id
+      JOIN cities      c ON c.city_id       = r.city_id
+      WHERE o.order_timestamp >= NOW() - INTERVAL '5 minutes'
+      GROUP BY c.city_name
+    ),
+    base AS (
+      SELECT
+        c.city_name,
+        c.latitude  AS lat,
+        c.longitude AS lon,
+        mv.pressure_score::float           AS mv_pressure,
+        mv.order_count::float              AS mv_opm,
+        COALESCE(recent.orders_last_5m, 0) AS orders_last_5m
+      FROM cities c
+      LEFT JOIN mv     ON lower(mv.city_name)     = lower(c.city_name)
+      LEFT JOIN recent ON lower(recent.city_name) = lower(c.city_name)
+    ),
+    scaled AS (
+      SELECT
+        b.*,
+        CASE
+          WHEN b.mv_pressure IS NOT NULL THEN b.mv_pressure
+          ELSE CASE
+                 WHEN MAX(b.orders_last_5m) OVER () = 0 THEN 0
+                 ELSE ROUND(100.0 * b.orders_last_5m / NULLIF(MAX(b.orders_last_5m) OVER (), 0), 1)
+               END
+        END AS pressure_calc,
+        CASE
+          WHEN b.mv_opm IS NOT NULL THEN b.mv_opm
+          ELSE ROUND(b.orders_last_5m / 5.0, 1)
+        END AS opm_calc
+      FROM base b
     )
-    SELECT c.city_name,
-           c.latitude  AS lat,
-           c.longitude AS lon,
-           COALESCE(l.pressure_score, 0)::float AS pressure,
-           COALESCE(l.order_count, 0)::int      AS opm
-    FROM cities c
-    LEFT JOIN l USING (city_name);
+    SELECT city_name, lat, lon,
+           pressure_calc AS pressure,
+           opm_calc      AS opm
+    FROM scaled;
     """
     async with pool.acquire() as con:
         rows = await con.fetch(q, minutes)
     return [dict(r) for r in rows]
+
 
 @app.get("/api/revenue/weekly")
 async def revenue_weekly():
@@ -1264,6 +1434,7 @@ async def restaurants_live(city: Optional[str] = None, limit: int = 50):
     FROM ops.restaurant_status_ui ui
     LEFT JOIN restaurants r ON r.restaurant_id = ui.restaurant_id
     LEFT JOIN cities      c ON c.city_id       = r.city_id
+    LEFT JOIN ops.restaurant_overrides o ON o.restaurant_id = ui.restaurant_id   -- <— add this
     WHERE ($1::text IS NULL OR COALESCE(c.city_name, ui.city_name) = $1)
     ORDER BY orders_last_15m DESC NULLS LAST, updated_ms DESC
     LIMIT $2
@@ -1360,15 +1531,23 @@ async def couriers_live(city: Optional[str] = None, limit: int = 50):
     )
     SELECT
       ui.delivery_person_id AS courier_id,
+      COALESCE(dp.name, '#' || ui.delivery_person_id::text) AS courier_name,   -- <— NEW
       COALESCE(rc.city_name, ui.city_name) AS city_name,
-      COALESCE((ui.payload->>'active_deliveries_count')::int, 0) AS active_deliveries,
+      COALESCE((ui.payload->>'active_deliveries_count')::int, 0)   AS active_deliveries,
       COALESCE((ui.payload->>'avg_delivery_speed_today')::float, NULL) AS avg_speed_kmh,
       COALESCE(
-        (ui.payload->>'report_timestamp')::bigint,
-        CAST(EXTRACT(EPOCH FROM ui.last_update)*1000 AS bigint)
+        NULLIF(ui.payload->>'report_timestamp','')::bigint,
+        CASE WHEN (ui.payload->>'report_timestamp') ~ '^[0-9]{10}$'
+             THEN ((ui.payload->>'report_timestamp')::bigint * 1000) END,
+        CASE WHEN ui.payload ? 'report_timestamp'
+             THEN (EXTRACT(EPOCH FROM (ui.payload->>'report_timestamp')::timestamptz) * 1000)::bigint END,
+        NULLIF(ui.payload->>'ts','')::bigint,
+        NULLIF(ui.payload->>'event_time','')::bigint,
+        (EXTRACT(EPOCH FROM ui.last_update) * 1000)::bigint
       ) AS updated_ms
     FROM ops.courier_activity_ui ui
-    LEFT JOIN recent_city rc ON rc.delivery_person_id = ui.delivery_person_id
+    LEFT JOIN delivery_personnel dp ON dp.delivery_person_id = ui.delivery_person_id  -- <— NEW
+    LEFT JOIN recent_city rc        ON rc.delivery_person_id = ui.delivery_person_id
     WHERE ($1::text IS NULL OR COALESCE(rc.city_name, ui.city_name) = $1)
     ORDER BY updated_ms DESC
     LIMIT $2
@@ -1379,15 +1558,34 @@ async def couriers_live(city: Optional[str] = None, limit: int = 50):
 
 
 
+
+
+# webapi/app.py  (add)
+from fastapi import Body
+from datetime import datetime, timedelta, timezone
+from fastapi import HTTPException
+
 @app.post("/api/restaurants/pause")
-async def pause_restaurant(restaurant_id: int, minutes: int = 15):
-    # record an action + (optionally) publish to Kafka ops.decisions here
+async def pause_restaurant(payload: dict):
+    rid = int(payload.get("restaurant_id") or 0)
+    minutes = int(payload.get("minutes") or 15)
+    if not rid:
+        raise HTTPException(status_code=400, detail="restaurant_id required")
+
+    until = datetime.now(timezone.utc) + timedelta(minutes=minutes)
+
     async with pool.acquire() as con:
         await con.execute("""
-          INSERT INTO ops.actions_log(ts, user_name, action, params, result)
-          VALUES (NOW(), 'ops', 'PAUSE_RESTAURANT', jsonb_build_object('restaurant_id',$1,'minutes',$2), 'queued')
-        """, restaurant_id, minutes)
-    return {"ok": True}
+            INSERT INTO ops.restaurant_overrides (restaurant_id, paused_until, updated_at)
+            VALUES ($1, $2, NOW())
+            ON CONFLICT (restaurant_id)
+            DO UPDATE SET paused_until = EXCLUDED.paused_until,
+                          updated_at    = NOW()
+        """, rid, until)
+
+    # Frontend will show this time immediately
+    return {"ok": True, "until": until.isoformat()}
+
 
 
 @app.post("/api/couriers/nudge")
@@ -1499,3 +1697,99 @@ async def weather_city_heat(minutes: int = 60):
         rows = await con.fetch(q, minutes)
     return [dict(r) for r in rows]
 
+# ---------- Dynamic SLA (separate from classic SLA) ----------
+
+@app.get("/api/dsla/violations")
+async def dsla_violations(
+        minutes: int = 180,
+        city: Optional[str] = None,
+        limit: int = 50,
+        threshold: float = 1.25
+):
+    """
+    Recent Dynamic-SLA violations (predicted vs actual), separate endpoint.
+    """
+    q = """
+    SELECT
+      v.order_id,
+      r.name AS restaurant_name,
+      c.city_name,
+      v.predicted_minutes,
+      v.actual_minutes,
+      ROUND(v.overrun_minutes::numeric, 1)    AS overrun_minutes,
+      ROUND(v.overrun_percentage::numeric, 3) AS overrun_pct,
+      v.violation_timestamp
+    FROM dynamic_sla_violations v
+    JOIN orders o        ON o.order_id      = v.order_id
+    JOIN restaurants r   ON r.restaurant_id = o.restaurant_id
+    JOIN cities c        ON c.city_id       = o.city_id
+    WHERE v.violation_timestamp >= NOW() - ($1::int * interval '1 minute')
+      AND v.overrun_percentage >= $4
+      AND ($2::text IS NULL OR c.city_name = $2)
+    ORDER BY v.violation_timestamp DESC
+    LIMIT $3
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, minutes, city, limit, threshold)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/dsla/model_health")
+async def dsla_model_health(hours: int = 6):
+    """
+    Time-bucketed MAE/MAPE for the ETA model behind dynamic SLA.
+    """
+    q = """
+    WITH b AS (
+      SELECT
+        date_trunc('minute', COALESCE(completed_at, now())) AS ts,
+        absolute_error,
+        NULLIF(predicted_minutes,0) AS predicted
+      FROM eta_model_performance
+      WHERE COALESCE(completed_at, now()) >= NOW() - ($1::int || ' hours')::interval
+    ), g AS (
+      SELECT
+        date_trunc('minute', ts) - ((EXTRACT(minute from ts)::int % 15) || ' minutes')::interval AS bucket,
+        AVG(absolute_error)::float                                  AS mae,
+        AVG(absolute_error / NULLIF(predicted,1))::float            AS mape
+      FROM b
+      GROUP BY 1
+    )
+    SELECT bucket AS ts, mae, mape
+    FROM g
+    ORDER BY ts ASC;
+    """
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, hours)
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/dsla/summary")
+async def dsla_summary(hours: int = 24, threshold: float = 1.25):
+    """
+    KPI strip for Dynamic SLA only (rate & error percentiles).
+    """
+    q = """
+    WITH o AS (
+      SELECT order_id FROM orders
+      WHERE status='Completed' AND order_timestamp >= NOW() - ($1::int || ' hours')::interval
+    ), v AS (
+      SELECT * FROM dynamic_sla_violations
+      WHERE violation_timestamp >= NOW() - ($1::int || ' hours')::interval
+        AND overrun_percentage >= $2
+    ), e AS (
+      SELECT absolute_error FROM eta_model_performance
+      WHERE COALESCE(completed_at, now()) >= NOW() - ($1::int || ' hours')::interval
+    )
+    SELECT
+      (SELECT COUNT(*) FROM v)::int                            AS violations,
+      (SELECT COUNT(*) FROM o)::int                            AS completed,
+      CASE WHEN (SELECT COUNT(*) FROM o)=0 THEN 0
+           ELSE ROUND((SELECT COUNT(*) FROM v)::numeric
+                       / NULLIF((SELECT COUNT(*) FROM o),0), 4) END  AS violation_rate,
+      (SELECT percentile_disc(0.5) WITHIN GROUP (ORDER BY absolute_error) FROM e) AS p50_abs_err,
+      (SELECT percentile_disc(0.9) WITHIN GROUP (ORDER BY absolute_error) FROM e) AS p90_abs_err
+    """
+    async with pool.acquire() as con:
+        row = await con.fetchrow(q, hours, threshold)
+    return dict(row) if row else {}

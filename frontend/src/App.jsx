@@ -22,6 +22,9 @@ import RestaurantMap from "./RestaurantMap";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import WeatherInsights from "./WeatherInsights";
 import WeatherMap from "./WeatherMap";
+import DynamicSlaViolations from "./DynamicSlaViolations";   // ADD
+import DynamicModelHealth from "./DynamicModelHealth";       // ADD
+
 
 
 /* --------------------------- CONFIG --------------------------- */
@@ -388,6 +391,25 @@ function DashboardsPage() {
     );
 }
 
+function DynamicSlaPage() {                                   // ADD
+    const { city } = useCity();
+    return (
+        <>
+            <div className="card" style={{ marginBottom: 16 }}>
+                <h3 style={{ margin: 0 }}>Dynamic SLA</h3>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                    Live overruns & ETA model health (separate from classic SLA)
+                </div>
+            </div>
+            <div className="row2 full">
+                <DynamicSlaViolations city={city} />
+                <DynamicModelHealth />
+            </div>
+        </>
+    );
+}
+
+
 function ActivityPage() {
     const [rows, setRows] = useState([]);
     useEffect(()=>{
@@ -443,6 +465,7 @@ function Shell(){
                 <div className="links" role="navigation">
                     <NavLink to="/overview" className={({isActive})=>isActive?"active":""}>Overview</NavLink>
                     <NavLink to="/dashboards" className={({isActive})=>isActive?"active":""}>Dashboards</NavLink>
+                    <NavLink to="/dynamic-sla" className={({isActive})=>isActive?"active":""}>Dynamic SLA</NavLink>
                     <NavLink to="/activity" className={({isActive})=>isActive?"active":""}>Activity</NavLink>
                     <NavLink to="/weather" className={({isActive})=>isActive?"active":""}>Weather</NavLink>
                     <NavLink to="/replay" className={({isActive})=>isActive?"active":""}>Replay</NavLink>
@@ -452,6 +475,7 @@ function Shell(){
             <Routes>
                 <Route path="/overview" element={<OverviewPage/>} />
                 <Route path="/dashboards" element={<DashboardsPage />} />
+                <Route path="/dynamic-sla" element={<DynamicSlaPage/>} />
                 <Route path="/activity" element={<ActivityPage />} />
                 <Route
                     path="/weather"

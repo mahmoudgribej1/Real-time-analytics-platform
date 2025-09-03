@@ -5,7 +5,7 @@ import { API } from "./App";
 import Chart from "chart.js/auto";
 
 const fmtWhen = (ms) =>
-    ms ? new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
+    ms ? new Date(ms - 3600000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
 
 const cities = [
     "Tunis","Ariana","Ben Arous","Manouba","Sousse","Monastir","Nabeul","Sfax","Gabes","Medenine",

@@ -452,6 +452,8 @@ tr.stale { opacity: .6; }
     background: color-mix(in oklab, var(--text) 20%, transparent);
     border-radius: 8px;
 }
+/* keep header visible while you scroll the rows */
+.table thead th { position: sticky; top: 0; z-index: 1; background: var(--surface-1); }
 
 
 
