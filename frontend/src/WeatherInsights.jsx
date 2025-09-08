@@ -8,9 +8,9 @@ const fmtWhen = (ms) =>
     ms ? new Date(ms - 3600000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—";
 
 const cities = [
-    "Tunis","Ariana","Ben Arous","Manouba","Sousse","Monastir","Nabeul","Sfax","Gabes","Medenine",
-    "Kairouan","Sidi Bouzid","Kasserine","Kef","Bizerte","Zaghouan","Siliana","Gafsa","Tozeur",
-    "Kebili","Tataouine","Jendouba","Beja","Mahdia"
+    "Tunis", "Ariana", "Ben Arous", "Manouba", "Sousse", "Monastir", "Nabeul", "Sfax", "Gabes",
+    "Medenine", "Kairouan", "Sidi Bouzid", "Kasserine", "Kef", "Bizerte", "Zaghouan", "Siliana",
+    "Gafsa", "Tozeur", "Kebili", "Tataouine", "Jendouba", "Beja", "Mahdia"
 ];
 
 const fetchJSON = async (url) => {
@@ -18,6 +18,7 @@ const fetchJSON = async (url) => {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return r.json();
 };
+
 // Map many weather types to emojis (fallback included)
 const weatherEmoji = (w) => {
     const k = (w || "").toLowerCase();
@@ -49,9 +50,24 @@ const weatherEmoji = (w) => {
 };
 
 const weatherLabel = (w, isRain) => {
-    // If upstream sometimes only flags rain without a nice name
     const label = w || (isRain ? "Rain" : "—");
     return `${weatherEmoji(label)} ${label}`;
+};
+
+// Normalize upstream variety into a smaller set so voting works nicely
+const normalizeWeather = (w = "") => {
+    const k = w.toLowerCase();
+    if (["sunny", "clear"].includes(k)) return "sunny";
+    if (["cloudy", "overcast"].includes(k)) return "cloudy";
+    if (["rainy", "rain"].includes(k)) return "rain";
+    if (["drizzle"].includes(k)) return "drizzle";
+    if (["thunderstorm", "storm"].includes(k)) return "thunderstorm";
+    if (["snow", "snowy", "hail", "sleet"].includes(k)) return "snow";
+    if (["wind", "windy"].includes(k)) return "windy";
+    if (["fog", "mist", "haze"].includes(k)) return "fog";
+    if (["sandstorm", "sandstorms", "dust"].includes(k)) return "sandstorm";
+    if (["hot"].includes(k)) return "hot";
+    return k || "—";
 };
 
 export default function WeatherInsights() {
@@ -61,7 +77,11 @@ export default function WeatherInsights() {
 
     // Orders table
     const ordersKey = ["weatherOrders", { minutes, city, rain }];
-    const { data: orders = [], isLoading: ordersLoading, isError: ordersErr } = useQuery({
+    const {
+        data: orders = [],
+        isLoading: ordersLoading,
+        isError: ordersErr,
+    } = useQuery({
         queryKey: ordersKey,
         queryFn: () => {
             const qs = new URLSearchParams({
@@ -72,14 +92,60 @@ export default function WeatherInsights() {
             }).toString();
             return fetchJSON(`${API}/api/weather/orders?${qs}`);
         },
-        refetchInterval: 10_000, // live-ish
+        refetchInterval: 10_000,
     });
+
+    // Build a per-city weather snapshot to ensure consistency within each city.
+    // Strategy: majority weather in current window; tie-break by most recent sample.
+    const cityWeatherSnapshot = useMemo(() => {
+        const map = new Map();
+        for (const o of orders) {
+            const c = o.city_name || "—";
+            const ts = Number(o.event_ms || Date.parse(o.event_time) || 0);
+            const w = normalizeWeather(o.weather);
+
+            if (!map.has(c)) {
+                map.set(c, {
+                    votes: { [w]: 1 },
+                    latestTs: ts,
+                    latestWeather: w,
+                    latestRain: !!o.is_rain,
+                });
+            } else {
+                const entry = map.get(c);
+                entry.votes[w] = (entry.votes[w] || 0) + 1;
+                if (ts > entry.latestTs) {
+                    entry.latestTs = ts;
+                    entry.latestWeather = w;
+                    entry.latestRain = !!o.is_rain;
+                }
+            }
+        }
+        const out = {};
+        for (const [c, entry] of map.entries()) {
+            const votes = entry.votes;
+            const top = Object.keys(votes).sort((a, b) => votes[b] - votes[a])[0];
+            out[c] = {
+                weather: top || entry.latestWeather,
+                is_rain: entry.latestRain,
+                ts: entry.latestTs,
+            };
+        }
+        return out;
+    }, [orders]);
 
     // Impact summary (rain vs dry averages)
     const impactKey = ["weatherImpact", { hours: 24, city }];
-    const { data: impact = [], isLoading: impactLoading, isError: impactErr } = useQuery({
+    const {
+        data: impact = [],
+        isLoading: impactLoading,
+        isError: impactErr,
+    } = useQuery({
         queryKey: impactKey,
-        queryFn: () => fetchJSON(`${API}/api/weather/impact?hours=24${city ? `&city=${encodeURIComponent(city)}` : ""}`),
+        queryFn: () =>
+            fetchJSON(
+                `${API}/api/weather/impact?hours=24${city ? `&city=${encodeURIComponent(city)}` : ""}`
+            ),
         refetchInterval: 60_000,
     });
 
@@ -146,6 +212,21 @@ export default function WeatherInsights() {
                             </option>
                         ))}
                     </select>
+
+                    {/* Show which snapshot is applied for the selected city */}
+                    {city && cityWeatherSnapshot[city] && (
+                        <span
+                            className="badge"
+                            title="City weather snapshot applied to the list"
+                            style={{ whiteSpace: "nowrap" }}
+                        >
+              {weatherLabel(
+                  cityWeatherSnapshot[city].weather,
+                  cityWeatherSnapshot[city].is_rain
+              )}{" "}
+                            · {fmtWhen(cityWeatherSnapshot[city].ts)}
+            </span>
+                    )}
                 </div>
             </div>
 
@@ -164,9 +245,9 @@ export default function WeatherInsights() {
                     <div
                         className="scroll-list"
                         style={{
-                            maxHeight: 400,                 // Reduced height to give map more space
+                            maxHeight: 400,
                             overflowY: "auto",
-                            overflowX: "auto",              // Allow horizontal scroll if needed
+                            overflowX: "auto",
                             marginTop: 10,
                             paddingRight: 6,
                             scrollbarGutter: "stable",
@@ -183,14 +264,13 @@ export default function WeatherInsights() {
                                 background: "var(--surface-1)",
                                 backdropFilter: "blur(4px)",
                                 boxShadow: "0 1px 0 var(--border)",
-                                padding: "8px 10px",        // Reduced padding
+                                padding: "8px 10px",
                                 display: "grid",
-                                // Use fixed widths to ensure restaurant names show fully
                                 gridTemplateColumns: "50px 200px 70px 80px 40px 50px",
-                                columnGap: 10,              // Reduced gap
+                                columnGap: 10,
                                 alignItems: "center",
                                 fontWeight: 700,
-                                fontSize: "0.85rem",        // Smaller font
+                                fontSize: "0.85rem",
                                 color: "var(--muted)",
                                 letterSpacing: ".1px",
                             }}
@@ -203,134 +283,142 @@ export default function WeatherInsights() {
                             <div style={{ textAlign: "right" }}>Min</div>
                         </div>
 
-                        {orders.map((r, idx) => (
-                            <div
-                                key={r.order_id}
-                                style={{
-                                    display: "grid",
-                                    gridTemplateColumns: "50px 200px 70px 80px 40px 50px",
-                                    columnGap: 10,
-                                    alignItems: "center",
-                                    padding: "10px",           // More compact padding
-                                    fontSize: "0.9rem",        // Slightly smaller text
-                                    lineHeight: 1.3,
-                                    borderBottom: "1px dashed var(--border)",
-                                    background:
-                                        idx % 2 === 0
-                                            ? "color-mix(in oklab, var(--surface-2) 8%, transparent)"
-                                            : "transparent",
-                                    transition: "background .15s ease",
-                                }}
-                                onMouseEnter={(e) => (e.currentTarget.style.background =
-                                    "color-mix(in oklab, var(--surface-2) 15%, transparent)")}
-                                onMouseLeave={(e) => (e.currentTarget.style.background =
-                                    idx % 2 === 0
-                                        ? "color-mix(in oklab, var(--surface-2) 8%, transparent)"
-                                        : "transparent")}
-                            >
-                                {/* Compact time format */}
-                                <div style={{
-                                    fontVariantNumeric: "tabular-nums",
-                                    fontSize: "0.85rem",
-                                    color: "var(--muted)"
-                                }}>
-                                    {fmtWhen(r.event_ms)}
-                                </div>
-
-                                {/* Restaurant name with better space allocation */}
+                        {orders.map((r, idx) => {
+                            const snap = cityWeatherSnapshot[r.city_name];
+                            return (
                                 <div
-                                    title={r.restaurant_name}
+                                    key={r.order_id}
                                     style={{
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
-                                        minWidth: 0,
-                                        fontWeight: 500,        // Less bold
+                                        display: "grid",
+                                        gridTemplateColumns: "50px 200px 70px 80px 40px 50px",
+                                        columnGap: 10,
+                                        alignItems: "center",
+                                        padding: "10px",
                                         fontSize: "0.9rem",
-                                        paddingRight: "12px",   // More padding to prevent cramping
+                                        lineHeight: 1.3,
+                                        borderBottom: "1px dashed var(--border)",
+                                        background:
+                                            idx % 2 === 0
+                                                ? "color-mix(in oklab, var(--surface-2) 8%, transparent)"
+                                                : "transparent",
+                                        transition: "background .15s ease",
                                     }}
+                                    onMouseEnter={(e) =>
+                                        (e.currentTarget.style.background =
+                                            "color-mix(in oklab, var(--surface-2) 15%, transparent)")
+                                    }
+                                    onMouseLeave={(e) =>
+                                        (e.currentTarget.style.background =
+                                            idx % 2 === 0
+                                                ? "color-mix(in oklab, var(--surface-2) 8%, transparent)"
+                                                : "transparent")
+                                    }
                                 >
-                                    {r.restaurant_name}
-                                </div>
+                                    {/* time */}
+                                    <div
+                                        style={{
+                                            fontVariantNumeric: "tabular-nums",
+                                            fontSize: "0.85rem",
+                                            color: "var(--muted)",
+                                        }}
+                                    >
+                                        {fmtWhen(r.event_ms)}
+                                    </div>
 
-                                {/* Compact city */}
-                                <div style={{
-                                    fontSize: "0.85rem",
-                                    color: "var(--muted)",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}>
-                                    {r.city_name}
-                                </div>
+                                    {/* restaurant */}
+                                    <div
+                                        title={r.restaurant_name}
+                                        style={{
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                            minWidth: 0,
+                                            fontWeight: 500,
+                                            fontSize: "0.9rem",
+                                            paddingRight: "12px",
+                                        }}
+                                    >
+                                        {r.restaurant_name}
+                                    </div>
 
-                                {/* Compact weather with icons only */}
-                                <div style={{
-                                    fontSize: "0.85rem",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    whiteSpace: "nowrap",
-                                }}>
-                                    {weatherLabel(r.weather, r.is_rain)}
-                                </div>
+                                    {/* city */}
+                                    <div
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            color: "var(--muted)",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        {r.city_name}
+                                    </div>
 
-                                {/* Smaller rush indicator */}
-                                <div style={{ textAlign: "center" }}>
-                                    {r.is_rush_hour ? (
-                                        <span
-                                            className="pill"
-                                            style={{
-                                                padding: "2px 6px",
-                                                fontSize: "0.75rem",
-                                                borderRadius: "4px"
-                                            }}
-                                        >
-                                            R
-                                        </span>
-                                    ) : (
-                                        <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>—</span>
-                                    )}
-                                </div>
+                                    {/* weather (snapshot per city) */}
+                                    <div
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                        }}
+                                    >
+                                        {snap
+                                            ? weatherLabel(snap.weather, snap.is_rain)
+                                            : weatherLabel(r.weather, r.is_rain)}
+                                    </div>
 
-                                {/* Compact time */}
-                                <div style={{
-                                    textAlign: "right",
-                                    fontVariantNumeric: "tabular-nums",
-                                    fontSize: "0.85rem",
-                                    fontWeight: 600
-                                }}>
-                                    {r.time_taken_minutes ?? "—"}
+                                    {/* rush */}
+                                    <div style={{ textAlign: "center" }}>
+                                        {r.is_rush_hour ? (
+                                            <span
+                                                className="pill"
+                                                style={{
+                                                    padding: "2px 6px",
+                                                    fontSize: "0.75rem",
+                                                    borderRadius: "4px",
+                                                }}
+                                            >
+                        R
+                      </span>
+                                        ) : (
+                                            <span style={{ color: "var(--muted)", fontSize: "0.8rem" }}>—</span>
+                                        )}
+                                    </div>
+
+                                    {/* minutes */}
+                                    <div
+                                        style={{
+                                            textAlign: "right",
+                                            fontVariantNumeric: "tabular-nums",
+                                            fontSize: "0.85rem",
+                                            fontWeight: 600,
+                                        }}
+                                    >
+                                        {r.time_taken_minutes ?? "—"}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
 
                         {!ordersLoading && !orders.length && (
-                            <div style={{
-                                padding: 20,
-                                opacity: 0.7,
-                                textAlign: "center",
-                                fontSize: "0.9rem"
-                            }}>
+                            <div
+                                style={{ padding: 20, opacity: 0.7, textAlign: "center", fontSize: "0.9rem" }}
+                            >
                                 No data in window.
                             </div>
                         )}
                         {(ordersLoading || impactLoading) && (
-                            <div style={{
-                                padding: 20,
-                                opacity: 0.7,
-                                textAlign: "center",
-                                fontSize: "0.9rem"
-                            }}>
+                            <div
+                                style={{ padding: 20, opacity: 0.7, textAlign: "center", fontSize: "0.9rem" }}
+                            >
                                 Loading…
                             </div>
                         )}
                         {(ordersErr || impactErr) && (
-                            <div style={{
-                                padding: 20,
-                                color: "var(--danger)",
-                                textAlign: "center",
-                                fontSize: "0.9rem"
-                            }}>
+                            <div
+                                style={{ padding: 20, color: "var(--danger)", textAlign: "center", fontSize: "0.9rem" }}
+                            >
                                 Failed to load weather data.
                             </div>
                         )}
