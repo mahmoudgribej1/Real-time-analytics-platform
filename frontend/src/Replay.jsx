@@ -9,7 +9,12 @@ export default function Replay() {
     const [minutes, setMinutes] = useState(120);
     const [data, setData] = useState({pressure:[], breaches:[], actions:[]});
 
-    const load = async ()=> setData(await (await fetch(`${API}/api/replay?city=${encodeURIComponent(city)}&minutes=${minutes}`)).json());
+    const load = async () => {
+        const url = `${API}/api/replay?city=${encodeURIComponent(city)}&minutes=${minutes}`;
+        const r = await fetch(url);
+        setData(await r.json());
+    };
+
     useEffect(()=>{ load(); },[city, minutes]);
     const location = useLocation();
 
