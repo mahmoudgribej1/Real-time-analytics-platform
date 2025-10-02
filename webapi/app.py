@@ -85,6 +85,27 @@ async def _consume_courier_features():
                 batch, last = [], now
     finally:
         await consumer.stop()
+
+
+# --- utility to choose a live source table -----------------------------------
+async def _pick_table(con, candidates: list[str], minutes: int = 240) -> str:
+    """
+    Return the first table/view name from `candidates` that has at least 1 row
+    in the last `minutes`. Falls back to the last candidate if none match.
+    """
+    for name in candidates:
+        try:
+            cnt = await con.fetchval(
+                f"SELECT COUNT(*) FROM {name} WHERE ts >= NOW() - make_interval(mins => $1::int)",
+                minutes
+            )
+            if cnt and int(cnt) > 0:
+                return name
+        except Exception:
+            # table/view may not exist; try the next one
+            continue
+    return candidates[-1]
+
 # ------------------------------
 # Startup / shutdown
 # ------------------------------
@@ -582,33 +603,47 @@ async def trigger_surge(req: SurgeReq):
 # -------- Pressure endpoints --------
 @app.get("/api/pressure/top")
 async def pressure_top(minutes: int = 10, limit: int = 8):
-    q = """
-    WITH latest AS (
-      SELECT DISTINCT ON (city_name)
-             city_name, ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
-      FROM ops.city_pressure_minute_mv
-      WHERE ts >= NOW() - make_interval(mins => $1::int)
-      ORDER BY city_name, ts DESC
-    )
-    SELECT *
-    FROM latest
-    ORDER BY pressure_score DESC NULLS LAST
-    LIMIT $2
-    """
     async with pool.acquire() as con:
-        rows = await con.fetch(q, minutes, limit)
+        src = await _pick_table(
+            con,
+            ["ops.city_pressure_minute_mv", "ops.city_pressure_minute"],
+            minutes
+        )
+        rows = await con.fetch(f"""
+            WITH latest AS (
+              SELECT DISTINCT ON (city_name)
+                     city_name, ts,
+                     pressure_score, order_count, avg_delivery_time,
+                     available_couriers, demand_per_available
+              FROM {src}
+              WHERE ts >= NOW() - make_interval(mins => $1::int)
+              ORDER BY city_name, ts DESC
+            )
+            SELECT *
+            FROM latest
+            ORDER BY COALESCE(pressure_score,0) DESC NULLS LAST
+            LIMIT $2
+        """, minutes, limit)
     return [dict(r) for r in rows]
+
 
 @app.get("/api/pressure/series")
 async def pressure_series(city: str, minutes: int = 120):
-    q = """
-    SELECT ts, pressure_score, order_count, avg_delivery_time, available_couriers, demand_per_available
-    FROM ops.city_pressure_minute_mv
-    WHERE city_name = $1 AND ts >= NOW() - make_interval(mins => $2::int)
-    ORDER BY ts
-    """
     async with pool.acquire() as con:
-        rows = await con.fetch(q, city, minutes)
+        src = await _pick_table(
+            con,
+            ["ops.city_pressure_minute_mv", "ops.city_pressure_minute"],
+            minutes
+        )
+        rows = await con.fetch(f"""
+            SELECT ts,
+                   pressure_score, order_count, avg_delivery_time,
+                   available_couriers, demand_per_available
+            FROM {src}
+            WHERE city_name = $1
+              AND ts >= NOW() - make_interval(mins => $2::int)
+            ORDER BY ts
+        """, city, minutes)
     return [dict(r) for r in rows]
 
 # -------- Recommendations (rule-based for now) --------
@@ -723,17 +758,36 @@ async def mute_or_surge(kind: str, city: str, minutes: int, mult: float):
 @app.get("/api/replay")
 async def replay(city: str, minutes: int = 120):
     async with pool.acquire() as con:
-        pres = await con.fetch("""
-          SELECT ts, pressure_score FROM ops.city_pressure_minute_mv
-          WHERE city_name = $1 AND ts >= NOW() - make_interval(mins => $2::int)
-          ORDER BY ts
-        """, city, minutes)
-        br = await con.fetch("""
-          SELECT ts, SUM(breaches)::int AS breaches
-          FROM ops.sla_breaches_per_minute_mv
-          WHERE city_name=$1 AND ts >= NOW() - make_interval(mins => $2::int)
-          GROUP BY ts ORDER BY ts
-        """, city, minutes)
+        pressure_src = await _pick_table(
+            con,
+            ["ops.city_pressure_minute_mv", "ops.city_pressure_minute"],
+            minutes
+        )
+        breaches_src = await _pick_table(
+            con,
+            ["ops.sla_breaches_per_minute_mv", "ops.sla_breaches_per_minute"],
+            minutes
+        )
+
+        pres = await con.fetch(
+            f"""SELECT ts, pressure_score
+                FROM {pressure_src}
+                WHERE city_name = $1
+                  AND ts >= NOW() - make_interval(mins => $2::int)
+                ORDER BY ts""",
+            city, minutes
+        )
+
+        br = await con.fetch(
+            f"""SELECT ts, SUM(breaches)::int AS breaches
+                FROM {breaches_src}
+                WHERE city_name = $1
+                  AND ts >= NOW() - make_interval(mins => $2::int)
+                GROUP BY ts
+                ORDER BY ts""",
+            city, minutes
+        )
+
         acts = await con.fetch("""
           SELECT ts, action, params, result
           FROM ops.actions_log
@@ -741,11 +795,16 @@ async def replay(city: str, minutes: int = 120):
             AND ( (params->>'city') = $2 OR action IN ('mute_city','unmute_city','trigger_surge') )
           ORDER BY ts
         """, minutes, city)
+
     return {
         "pressure": [dict(r) for r in pres],
         "breaches": [dict(r) for r in br],
-        "actions":  [ {"ts":r["ts"].isoformat(),"action":r["action"],"params":r["params"],"result":r["result"]} for r in acts ]
+        "actions":  [{"ts": r["ts"].isoformat(),
+                      "action": r["action"],
+                      "params": r["params"],
+                      "result": r["result"]} for r in acts]
     }
+
 
 class RainReq(BaseModel):
     city: str           # 'Tunis' or '6'
@@ -1128,12 +1187,32 @@ async def orders_live(limit: int = 30, cancel_window_min: int = 15):
     return [dict(r) for r in rows]
 
 
+from typing import Optional
+from pydantic import BaseModel
 
+class AlertAck(BaseModel):
+    kind: str
+    city_name: Optional[str] = None
+    minutes: int = 30
+    user: Optional[str] = "demo"
+
+@app.post("/api/alerts/ack")
+async def alerts_ack(a: AlertAck):
+    async with pool.acquire() as con:
+        await con.execute(
+            """
+            INSERT INTO ops.alert_acks(kind, city_name, until, acked_by)
+            VALUES ($1, $2, NOW() + make_interval(mins => $3::int), $4)
+            """,
+            a.kind, a.city_name, a.minutes, a.user or "demo"
+        )
+    return {"ok": True}
 
 @app.get("/api/alerts/active")
 async def alerts_active():
     alerts = []
     async with pool.acquire() as con:
+        # --- driver shortage (unchanged query) ---
         shortage = await con.fetch("""
           WITH latest AS (
             SELECT DISTINCT ON (city_name)
@@ -1150,6 +1229,7 @@ async def alerts_active():
             alerts.append({
                 "kind": "driver_shortage",
                 "severity": "warning",
+                "city_name": r["city_name"],
                 "title": f"Driver shortage in {r['city_name']}",
                 "details": {
                     "pressure": float(r["pressure_score"] or 0),
@@ -1158,6 +1238,7 @@ async def alerts_active():
                 }
             })
 
+        # --- SLA spike (unchanged query) ---
         spike = await con.fetch("""
           SELECT city_name, SUM(breaches)::int AS breaches
           FROM ops.sla_breaches_per_minute_mv
@@ -1171,16 +1252,21 @@ async def alerts_active():
             alerts.append({
                 "kind": "sla_spike",
                 "severity": "critical",
+                "city_name": r["city_name"],
                 "title": f"SLA breaches spiking in {r['city_name']}",
                 "details": {"breaches_10m": int(r["breaches"])}
             })
 
+        # --- peak start (your fixed version; using window_end) ---
         peak = await con.fetch("""
           WITH latest AS (
             SELECT DISTINCT ON (city_name)
-                   city_name, ts, order_count
+                   city_name,
+                   window_end AS ts,
+                   order_count
             FROM city_orders_per_minute
-            ORDER BY city_name, ts DESC
+            WHERE window_end >= NOW() - INTERVAL '2 hours'
+            ORDER BY city_name, window_end DESC
           ),
           base AS (
             SELECT city_name, AVG(order_count) AS avg2h
@@ -1189,7 +1275,8 @@ async def alerts_active():
             GROUP BY city_name
           )
           SELECT l.city_name, l.order_count, b.avg2h
-          FROM latest l JOIN base b USING (city_name)
+          FROM latest l
+          JOIN base b USING (city_name)
           WHERE l.order_count >= 1.5 * b.avg2h
           ORDER BY (l.order_count - b.avg2h) DESC
           LIMIT 3
@@ -1198,9 +1285,16 @@ async def alerts_active():
             alerts.append({
                 "kind": "peak_start",
                 "severity": "info",
+                "city_name": r["city_name"],
                 "title": f"Peak starting in {r['city_name']}",
                 "details": {"opm": int(r["order_count"] or 0)}
             })
+
+        # ---- filter out acked alerts (snoozed) ----
+        acks = await con.fetch("SELECT kind, city_name FROM ops.alert_acks WHERE until > NOW()")
+        acked = {(x["kind"], x["city_name"]) for x in acks}
+        alerts = [a for a in alerts if (a["kind"], a.get("city_name")) not in acked]
+
     return alerts
 
 
@@ -1738,30 +1832,62 @@ async def dsla_violations(
 async def dsla_model_health(hours: int = 6):
     """
     Time-bucketed MAE/MAPE for the ETA model behind dynamic SLA.
+    Returns: {"rows":[{"ts": "...", "mae": <float>, "mape": <float>}...], "mae_1h": <float>}
     """
     q = """
     WITH b AS (
       SELECT
-        date_trunc('minute', COALESCE(completed_at, now())) AS ts,
-        absolute_error,
-        NULLIF(predicted_minutes,0) AS predicted
-      FROM eta_model_performance
-      WHERE COALESCE(completed_at, now()) >= NOW() - ($1::int || ' hours')::interval
-    ), g AS (
+        -- derive an event time near delivery without needing completed_at
+        (o.order_timestamp + (COALESCE(ep.actual_minutes, ep.predicted_minutes) || ' minutes')::interval) AS ts,
+        ep.absolute_error,
+        NULLIF(ep.predicted_minutes, 0) AS predicted
+      FROM eta_model_performance ep
+      JOIN orders o ON o.order_id = ep.order_id
+      WHERE o.order_timestamp >= NOW() - ($1::int || ' hours')::interval
+    ),
+    g AS (
       SELECT
-        date_trunc('minute', ts) - ((EXTRACT(minute from ts)::int % 15) || ' minutes')::interval AS bucket,
-        AVG(absolute_error)::float                                  AS mae,
-        AVG(absolute_error / NULLIF(predicted,1))::float            AS mape
+        date_trunc('minute', ts)
+          - ((EXTRACT(minute FROM ts)::int % 15) || ' minutes')::interval AS bucket,
+        AVG(absolute_error)::float                        AS mae,
+        AVG(absolute_error / NULLIF(predicted, 1))::float AS mape
       FROM b
       GROUP BY 1
+    ),
+    last1h AS (
+      SELECT AVG(absolute_error)::float AS mae_1h
+      FROM b
+      WHERE ts >= NOW() - INTERVAL '1 hour'
     )
-    SELECT bucket AS ts, mae, mape
-    FROM g
-    ORDER BY ts ASC;
+    SELECT
+      COALESCE(
+        json_agg(
+          json_build_object('ts', g.bucket, 'mae', g.mae, 'mape', g.mape)
+          ORDER BY g.bucket
+        ),
+        '[]'::json
+      ) AS rows,
+      COALESCE((SELECT mae_1h FROM last1h), 0.0) AS mae_1h
+    FROM g;
     """
     async with pool.acquire() as con:
-        rows = await con.fetch(q, hours)
-    return [dict(r) for r in rows]
+        row = await con.fetchrow(q, hours)
+
+    if not row:
+        return {"rows": [], "mae_1h": 0.0}
+
+    rows_field = row["rows"]
+    # asyncpg can return json as str; normalize to list
+    if isinstance(rows_field, str):
+        try:
+            rows = json.loads(rows_field)
+        except Exception:
+            rows = []
+    else:
+        rows = rows_field or []
+
+    return {"rows": rows, "mae_1h": float(row["mae_1h"] or 0.0)}
+
 
 
 @app.get("/api/dsla/summary")
