@@ -24,7 +24,7 @@ import WeatherInsights from "./WeatherInsights";
 import WeatherMap from "./WeatherMap";
 import DynamicSlaViolations from "./DynamicSlaViolations";   // ADD
 import DynamicModelHealth from "./DynamicModelHealth";       // ADD
-
+import DeliveryRouteMap from "./DeliveryRouteMap";
 
 
 /* --------------------------- CONFIG --------------------------- */
@@ -448,6 +448,88 @@ function CityChip(){
         </div>
     );
 }
+function RouteViewerPage() {
+    const [orderId, setOrderId] = useState("")
+    const [recentRoutes, setRecentRoutes] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [err, setErr] = useState(null)
+
+    useEffect(() => {
+        let alive = true
+        setLoading(true)
+        setErr(null)
+
+        fetch(`${API}/api/routes/recent?limit=20`)
+            .then(r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`)
+                return r.json()
+            })
+            .then(data => {
+                if (!alive) return
+                const rows = Array.isArray(data) ? data : Array.isArray(data?.rows) ? data.rows : []
+                setRecentRoutes(rows)
+            })
+            .catch(e => { if (alive) setErr(e.message) })
+            .finally(() => { if (alive) setLoading(false) })
+
+        return () => { alive = false }
+    }, [])
+
+    const parsedId = Number(orderId)
+    const hasValidId = Number.isFinite(parsedId) && parsedId > 0
+
+    return (
+        <>
+            <div className="card">
+                <h3>View Delivery Route</h3>
+
+                <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+                    <input
+                        type="number"
+                        placeholder="Enter Order ID"
+                        value={orderId}
+                        onChange={e => setOrderId(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") setOrderId(e.currentTarget.value) }}
+                        style={{ flex: 1 }}
+                    />
+                    <button className="btn" onClick={() => setOrderId(orderId)} disabled={!hasValidId}>
+                        Load Route
+                    </button>
+                </div>
+
+                {loading ? <div>Loading recent deliveries...</div> : null}
+                {err ? <div style={{ color: "var(--danger)" }}>Error, {err}</div> : null}
+
+                <h4>Recent Deliveries</h4>
+                <div style={{ display: "grid", gap: 8 }}>
+                    {recentRoutes.map(r => (
+                        <div
+                            key={r.order_id ?? `${r.courier_name}-${r.restaurant_name}-${Math.random()}`}
+                            onClick={() => setOrderId(String(r.order_id))}
+                            style={{
+                                padding: 12,
+                                background: "var(--bg-muted)",
+                                borderRadius: 8,
+                                cursor: "pointer"
+                            }}
+                        >
+                            <div>Order #{r.order_id ?? "?"} • {r.courier_name ?? "Courier"}</div>
+                            <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                                {r.restaurant_name ?? "Restaurant"} • {r.total_distance_km ?? "?"}km • {r.actual_duration_min ?? "?"}min
+                            </div>
+                        </div>
+                    ))}
+                    {!loading && !err && recentRoutes.length === 0 ? (
+                        <div style={{ color: "var(--muted)" }}>No recent routes</div>
+                    ) : null}
+                </div>
+            </div>
+
+            {hasValidId ? <DeliveryRouteMap orderId={parsedId} /> : null}
+        </>
+    )
+}
+
 
 
 
@@ -470,6 +552,7 @@ function Shell(){
                     <NavLink to="/weather" className={({isActive})=>isActive?"active":""}>Weather</NavLink>
                     <NavLink to="/replay" className={({isActive})=>isActive?"active":""}>Replay</NavLink>
                     <NavLink to="/scenarios" className={({isActive})=>isActive?"active":""}>Scenarios</NavLink>
+                    <NavLink to="/routes">Routes</NavLink>
                 </div>
             </nav>
             <Routes>
@@ -488,6 +571,8 @@ function Shell(){
                 />
                 <Route path="/replay" element={<Replay/>} />
                 <Route path="/scenarios" element={<Scenarios/>} />
+                <Route path="/routes" element={<RouteViewerPage/>} />
+
             </Routes>
         </div>
     );

@@ -1919,3 +1919,204 @@ async def dsla_summary(hours: int = 24, threshold: float = 1.25):
     async with pool.acquire() as con:
         row = await con.fetchrow(q, hours, threshold)
     return dict(row) if row else {}
+
+# Add after your existing endpoints (around line 1200+)
+
+@app.get("/api/routes/{order_id}")
+async def get_route(order_id: int):
+    """Get delivery route for a specific order with full details"""
+    q = """
+    SELECT 
+        dr.route_id,
+        dr.order_id,
+        dr.delivery_person_id,
+        dr.restaurant_id,
+        dr.route_geometry,
+        dr.waypoints,
+        dr.total_distance_km,
+        dr.estimated_duration_min,
+        dr.actual_duration_min,
+        dr.route_started_at,
+        dr.route_completed_at,
+        
+        -- Restaurant details
+        r.name AS restaurant_name,
+        r.latitude AS restaurant_lat,
+        r.longitude AS restaurant_lon,
+        
+        -- Delivery details
+        o.delivery_latitude,
+        o.delivery_longitude,
+        o.status,
+        
+        -- Courier details
+        dp.name AS courier_name,
+        
+        -- City
+        c.city_name
+        
+    FROM delivery_routes dr
+    JOIN orders o ON dr.order_id = o.order_id
+    JOIN restaurants r ON dr.restaurant_id = r.restaurant_id
+    JOIN delivery_personnel dp ON dr.delivery_person_id = dp.delivery_person_id
+    JOIN cities c ON r.city_id = c.city_id
+    WHERE dr.order_id = $1
+    """
+
+    async with pool.acquire() as con:
+        row = await con.fetchrow(q, order_id)
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Route not found")
+
+    result = dict(row)
+
+    # Parse JSON fields
+    result['route_geometry'] = json.loads(result['route_geometry']) if isinstance(result['route_geometry'], str) else result['route_geometry']
+    result['waypoints'] = json.loads(result['waypoints']) if isinstance(result['waypoints'], str) else result['waypoints']
+
+    return result
+
+
+@app.get("/api/routes/recent")
+async def get_recent_routes(
+        limit: int = 20,
+        city: Optional[str] = None,
+        courier_id: Optional[int] = None
+):
+    """Get recent completed delivery routes"""
+    q = """
+    SELECT 
+        dr.route_id,
+        dr.order_id,
+        dr.delivery_person_id,
+        dr.restaurant_id,
+        dr.total_distance_km,
+        dr.actual_duration_min,
+        dr.route_completed_at,
+        
+        r.name AS restaurant_name,
+        dp.name AS courier_name,
+        c.city_name,
+        o.status
+        
+    FROM delivery_routes dr
+    JOIN orders o ON dr.order_id = o.order_id
+    JOIN restaurants r ON dr.restaurant_id = r.restaurant_id
+    JOIN delivery_personnel dp ON dr.delivery_person_id = dp.delivery_person_id
+    JOIN cities c ON r.city_id = c.city_id
+    WHERE dr.route_completed_at IS NOT NULL
+      AND ($2::text IS NULL OR c.city_name = $2)
+      AND ($3::int IS NULL OR dr.delivery_person_id = $3)
+    ORDER BY dr.route_completed_at DESC
+    LIMIT $1
+    """
+
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, limit, city, courier_id)
+
+    return [dict(r) for r in rows]
+
+
+@app.get("/api/routes/courier/{courier_id}/history")
+async def get_courier_route_history(
+        courier_id: int,
+        hours: int = 8
+):
+    """Get all routes for a specific courier in the last N hours"""
+    q = """
+    SELECT 
+        dr.route_id,
+        dr.order_id,
+        dr.route_geometry,
+        dr.total_distance_km,
+        dr.actual_duration_min,
+        dr.route_started_at,
+        dr.route_completed_at,
+        
+        r.name AS restaurant_name,
+        r.latitude AS restaurant_lat,
+        r.longitude AS restaurant_lon,
+        
+        o.delivery_latitude,
+        o.delivery_longitude,
+        
+        c.city_name
+        
+    FROM delivery_routes dr
+    JOIN orders o ON dr.order_id = o.order_id
+    JOIN restaurants r ON dr.restaurant_id = r.restaurant_id
+    JOIN cities c ON r.city_id = c.city_id
+    WHERE dr.delivery_person_id = $1
+      AND dr.route_started_at >= NOW() - ($2::int || ' hours')::interval
+    ORDER BY dr.route_started_at DESC
+    """
+
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, courier_id, hours)
+
+    routes = []
+    for row in rows:
+        route = dict(row)
+        # Parse geometry
+        route['route_geometry'] = json.loads(route['route_geometry']) if isinstance(route['route_geometry'], str) else route['route_geometry']
+        routes.append(route)
+
+    return routes
+
+
+@app.get("/api/routes/map/active")
+async def get_active_routes_for_map(city: Optional[str] = None):
+    """Get currently active deliveries with routes for live map visualization"""
+    q = """
+    SELECT 
+        dr.order_id,
+        dr.route_geometry,
+        dr.waypoints,
+        dr.route_started_at,
+        
+        r.name AS restaurant_name,
+        r.latitude AS restaurant_lat,
+        r.longitude AS restaurant_lon,
+        
+        o.delivery_latitude,
+        o.delivery_longitude,
+        o.status,
+        
+        dp.name AS courier_name,
+        c.city_name,
+        
+        -- Calculate progress (elapsed time / total time)
+        CASE 
+            WHEN dr.estimated_duration_min > 0 THEN
+                LEAST(1.0, GREATEST(0.0, 
+                    EXTRACT(EPOCH FROM (NOW() - dr.route_started_at)) / 
+                    (dr.estimated_duration_min * 60.0)
+                ))
+            ELSE 0.0
+        END AS progress_ratio
+        
+    FROM delivery_routes dr
+    JOIN orders o ON dr.order_id = o.order_id
+    JOIN restaurants r ON dr.restaurant_id = r.restaurant_id
+    JOIN delivery_personnel dp ON dr.delivery_person_id = dp.delivery_person_id
+    JOIN cities c ON r.city_id = c.city_id
+    WHERE o.status IN ('Processing')
+      AND dr.route_completed_at IS NULL
+      AND dr.route_started_at >= NOW() - INTERVAL '2 hours'
+      AND ($1::text IS NULL OR c.city_name = $1)
+    ORDER BY dr.route_started_at DESC
+    LIMIT 50
+    """
+
+    async with pool.acquire() as con:
+        rows = await con.fetch(q, city)
+
+    routes = []
+    for row in rows:
+        route = dict(row)
+        route['route_geometry'] = json.loads(route['route_geometry']) if isinstance(route['route_geometry'], str) else route['route_geometry']
+        route['waypoints'] = json.loads(route['waypoints']) if isinstance(route['waypoints'], str) else route['waypoints']
+        routes.append(route)
+
+    return routes
