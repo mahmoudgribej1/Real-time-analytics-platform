@@ -18,6 +18,7 @@ L.Icon.Default.mergeOptions({
 export default function DeliveryRouteMap({ orderId }) {
     const [routeData, setRouteData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     // animation state
     const [animating, setAnimating] = useState(false);
@@ -26,17 +27,39 @@ export default function DeliveryRouteMap({ orderId }) {
     const stepRef = useRef(null);
 
     useEffect(() => {
-        if (!orderId) return;
+        if (!orderId || !Number.isFinite(Number(orderId)) || Number(orderId) <= 0) {
+            setError("Invalid order ID");
+            setLoading(false);
+            return;
+        }
 
         setLoading(true);
+        setError(null);
+        setRouteData(null);
+
         fetch(`${API}/api/routes/${orderId}`)
-            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) {
+                    if (res.status === 404) {
+                        throw new Error("Route not found for this order");
+                    } else if (res.status === 422) {
+                        throw new Error("Invalid order ID format");
+                    } else {
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                }
+                return res.json();
+            })
             .then((data) => {
+                if (!data || !data.route_geometry || !data.route_geometry.coordinates?.length) {
+                    throw new Error("Route data is incomplete or missing");
+                }
                 setRouteData(data);
                 setLoading(false);
             })
             .catch((err) => {
                 console.error("Failed to load route:", err);
+                setError(err.message || "Failed to load route");
                 setLoading(false);
             });
 
@@ -52,10 +75,55 @@ export default function DeliveryRouteMap({ orderId }) {
         };
     }, [orderId]);
 
-    if (loading) return <div className="card">Loading route...</div>;
-    if (!routeData) return <div className="card">No route data available.</div>;
-    if (!routeData.route_geometry || !routeData.route_geometry.coordinates?.length) {
-        return <div className="card">Route shape is missing.</div>;
+    if (loading) {
+        return (
+            <div className="card">
+                <div style={{
+                    textAlign: "center",
+                    padding: 48,
+                    color: "var(--muted)"
+                }}>
+                    <div style={{ fontSize: 16, marginBottom: 8 }}>Loading route...</div>
+                    <div style={{ fontSize: 12 }}>Order #{orderId}</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="card">
+                <div style={{
+                    textAlign: "center",
+                    padding: 48,
+                    background: "var(--bg-muted)",
+                    borderRadius: 8
+                }}>
+                    <div style={{ fontSize: 16, color: "var(--danger)", marginBottom: 8 }}>
+                        Error: {error}
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--muted)" }}>
+                        Order #{orderId}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!routeData) {
+        return (
+            <div className="card">
+                <div style={{
+                    textAlign: "center",
+                    padding: 48,
+                    color: "var(--muted)",
+                    background: "var(--bg-muted)",
+                    borderRadius: 8
+                }}>
+                    No route data available for Order #{orderId}
+                </div>
+            </div>
+        );
     }
 
     const routeCoords = routeData.route_geometry.coordinates.map((c) => [
@@ -70,8 +138,12 @@ export default function DeliveryRouteMap({ orderId }) {
 
     // fit-to-bounds once per render
     const whenMapReady = (map) => {
-        const bounds = L.latLngBounds(routeCoords);
-        map.fitBounds(bounds, { padding: [50, 50] });
+        try {
+            const bounds = L.latLngBounds(routeCoords);
+            map.fitBounds(bounds, { padding: [50, 50] });
+        } catch (e) {
+            console.error("Failed to fit bounds:", e);
+        }
     };
 
     const animateDelivery = () => {
@@ -81,6 +153,11 @@ export default function DeliveryRouteMap({ orderId }) {
             Array.isArray(routeData.waypoints) && routeData.waypoints.length > 1
                 ? routeData.waypoints.map((w) => [w.lat, w.lon])
                 : routeCoords;
+
+        if (points.length === 0) {
+            console.warn("No points to animate");
+            return;
+        }
 
         let idx = 0;
         setAnimating(true);
@@ -99,16 +176,15 @@ export default function DeliveryRouteMap({ orderId }) {
             }
             setCourierPos(points[idx]);
             setProgress(Math.round((idx / (points.length - 1)) * 100));
-        }, 300); // 300 ms per step, tune as needed
+        }, 300); // 300 ms per step
     };
 
     return (
         <div className="card" style={{ position: "relative" }}>
             <div style={{ marginBottom: 16 }}>
-                <h3 style={{ margin: 0 }}>Delivery Route, Order #{orderId}</h3>
-                <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 4 }}>
-                    {routeData.courier_name} • {routeData.city_name} •{" "}
-                    {routeData.total_distance_km} km • {routeData.actual_duration_min} min
+                <h3 style={{ margin: 0, marginBottom: 4 }}>Delivery Route, Order #{orderId}</h3>
+                <div style={{ fontSize: 14, color: "var(--muted)" }}>
+                    {routeData.courier_name ?? "Unknown Courier"} • {routeData.city_name ?? "Unknown City"} • {routeData.total_distance_km ?? "?"} km • {routeData.actual_duration_min ?? "?"} min
                 </div>
             </div>
 
@@ -123,23 +199,27 @@ export default function DeliveryRouteMap({ orderId }) {
                     attribution='&copy; OpenStreetMap'
                 />
 
-                <Marker position={[routeData.restaurant_lat, routeData.restaurant_lon]}>
-                    <Popup>
-                        <b>{routeData.restaurant_name}</b>
-                        <br />
-                        Restaurant
-                    </Popup>
-                </Marker>
+                {routeData.restaurant_lat && routeData.restaurant_lon ? (
+                    <Marker position={[routeData.restaurant_lat, routeData.restaurant_lon]}>
+                        <Popup>
+                            <b>{routeData.restaurant_name ?? "Restaurant"}</b>
+                            <br />
+                            Pickup location
+                        </Popup>
+                    </Marker>
+                ) : null}
 
-                <Marker position={[routeData.delivery_latitude, routeData.delivery_longitude]}>
-                    <Popup>Delivery destination</Popup>
-                </Marker>
+                {routeData.delivery_latitude && routeData.delivery_longitude ? (
+                    <Marker position={[routeData.delivery_latitude, routeData.delivery_longitude]}>
+                        <Popup>Delivery destination</Popup>
+                    </Marker>
+                ) : null}
 
                 <Polyline positions={routeCoords} pathOptions={{ color: "#3b82f6", weight: 4 }} />
 
                 {courierPos ? (
                     <Marker position={courierPos}>
-                        <Popup>Courier</Popup>
+                        <Popup>Courier (animated)</Popup>
                     </Marker>
                 ) : null}
             </MapContainer>

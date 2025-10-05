@@ -448,6 +448,8 @@ function CityChip(){
         </div>
     );
 }
+// Replace the RouteViewerPage function in App.jsx with this:
+
 function RouteViewerPage() {
     const [orderId, setOrderId] = useState("")
     const [recentRoutes, setRecentRoutes] = useState([])
@@ -467,7 +469,9 @@ function RouteViewerPage() {
             .then(data => {
                 if (!alive) return
                 const rows = Array.isArray(data) ? data : Array.isArray(data?.rows) ? data.rows : []
-                setRecentRoutes(rows)
+                // Filter out entries without valid order_id
+                const validRows = rows.filter(r => r.order_id && Number.isFinite(Number(r.order_id)) && Number(r.order_id) > 0)
+                setRecentRoutes(validRows)
             })
             .catch(e => { if (alive) setErr(e.message) })
             .finally(() => { if (alive) setLoading(false) })
@@ -477,6 +481,13 @@ function RouteViewerPage() {
 
     const parsedId = Number(orderId)
     const hasValidId = Number.isFinite(parsedId) && parsedId > 0
+
+    const handleRecentClick = (id) => {
+        const validId = Number(id)
+        if (Number.isFinite(validId) && validId > 0) {
+            setOrderId(String(validId))
+        }
+    }
 
     return (
         <>
@@ -489,7 +500,12 @@ function RouteViewerPage() {
                         placeholder="Enter Order ID"
                         value={orderId}
                         onChange={e => setOrderId(e.target.value)}
-                        onKeyDown={e => { if (e.key === "Enter") setOrderId(e.currentTarget.value) }}
+                        onKeyDown={e => {
+                            if (e.key === "Enter" && hasValidId) {
+                                // Trigger re-render by updating state
+                                setOrderId(String(parsedId))
+                            }
+                        }}
                         style={{ flex: 1 }}
                     />
                     <button className="btn" onClick={() => setOrderId(orderId)} disabled={!hasValidId}>
@@ -497,40 +513,79 @@ function RouteViewerPage() {
                     </button>
                 </div>
 
-                {loading ? <div>Loading recent deliveries...</div> : null}
-                {err ? <div style={{ color: "var(--danger)" }}>Error, {err}</div> : null}
+                {loading ? <div style={{ color: "var(--muted)" }}>Loading recent deliveries...</div> : null}
+                {err ? <div style={{ color: "var(--danger)" }}>Error: {err}</div> : null}
 
                 <h4>Recent Deliveries</h4>
-                <div style={{ display: "grid", gap: 8 }}>
-                    {recentRoutes.map(r => (
-                        <div
-                            key={r.order_id ?? `${r.courier_name}-${r.restaurant_name}-${Math.random()}`}
-                            onClick={() => setOrderId(String(r.order_id))}
-                            style={{
-                                padding: 12,
-                                background: "var(--bg-muted)",
-                                borderRadius: 8,
-                                cursor: "pointer"
-                            }}
-                        >
-                            <div>Order #{r.order_id ?? "?"} • {r.courier_name ?? "Courier"}</div>
-                            <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                                {r.restaurant_name ?? "Restaurant"} • {r.total_distance_km ?? "?"}km • {r.actual_duration_min ?? "?"}min
-                            </div>
-                        </div>
-                    ))}
-                    {!loading && !err && recentRoutes.length === 0 ? (
-                        <div style={{ color: "var(--muted)" }}>No recent routes</div>
-                    ) : null}
-                </div>
+
+                {!loading && !err && recentRoutes.length === 0 ? (
+                    <div style={{
+                        textAlign: "center",
+                        padding: 32,
+                        background: "var(--bg-muted)",
+                        borderRadius: 8,
+                        color: "var(--muted)"
+                    }}>
+                        No recent routes available
+                    </div>
+                ) : (
+                    <div style={{
+                        display: "grid",
+                        gap: 8,
+                        maxHeight: 400,
+                        overflowY: "auto",
+                        paddingRight: 4
+                    }}>
+                        {recentRoutes.map((r, idx) => {
+                            const isValidOrder = r.order_id && Number.isFinite(Number(r.order_id)) && Number(r.order_id) > 0
+
+                            return (
+                                <div
+                                    key={r.order_id ?? `fallback-${idx}`}
+                                    onClick={() => isValidOrder && handleRecentClick(r.order_id)}
+                                    style={{
+                                        padding: 12,
+                                        background: "var(--bg-muted)",
+                                        borderRadius: 8,
+                                        cursor: isValidOrder ? "pointer" : "not-allowed",
+                                        opacity: isValidOrder ? 1 : 0.5,
+                                        border: orderId === String(r.order_id) ? "2px solid var(--primary)" : "2px solid transparent",
+                                        transition: "all 0.2s"
+                                    }}
+                                    onMouseEnter={e => {
+                                        if (isValidOrder) e.currentTarget.style.background = "var(--border)"
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.background = "var(--bg-muted)"
+                                    }}
+                                >
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                        <div>
+                                            <div>
+                                                Order #{r.order_id ?? "N/A"} • {r.courier_name ?? "Unknown Courier"}
+                                                {!isValidOrder && <span style={{ color: "var(--danger)", marginLeft: 8 }}>(Invalid ID)</span>}
+                                            </div>
+                                            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                                                {r.restaurant_name ?? "Restaurant"} • {r.total_distance_km ?? "?"}km • {r.actual_duration_min ?? "?"}min
+                                            </div>
+                                        </div>
+                                        {isValidOrder && (
+                                            <span className="badge" style={{ background: "var(--primary)", color: "white" }}>
+                                                View
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                )}
             </div>
 
-            {hasValidId ? <DeliveryRouteMap orderId={parsedId} /> : null}
+            {hasValidId ? <DeliveryRouteMap key={parsedId} orderId={parsedId} /> : null}
         </>
     )
 }
-
-
 
 
 
