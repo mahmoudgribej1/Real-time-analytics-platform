@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { NavLink, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import PressureTop from "./PressureTop";
-import Recommendations from "./Recommendations";
+// import Recommendations from "./Recommendations";
 import Replay from "./Replay";
 import Scenarios from "./Scenarios";
 import SlaList from "./SlaList";
@@ -118,63 +118,63 @@ function Tiles({ kpi, loading }) {
     );
 }
 
-function ActionBar({ onToast }) {
-    const [city, setCity] = useState("Tunis");
-    const [minutes, setMinutes] = useState(15);
-    const [mult, setMult] = useState(2.0);
-    const [loading, setLoading] = useState(null);
-    const [mutes, setMutes] = useState([]);
-    const cities = ["Tunis","Ariana","Ben Arous","Manouba","Sousse","Monastir","Nabeul","Sfax","Gabes","Medenine","Kairouan","Sidi Bouzid","Kasserine","Kef","Bizerte","Zaghouan","Siliana","Gafsa","Tozeur","Kebili","Tataouine","Jendouba","Beja","Mahdia"];
-
-    const post = async (path, body, key) => {
-        try {
-            setLoading(key);
-            const r = await fetch(`${API}${path}`, {
-                method: "POST",
-                headers: {"Content-Type":"application/json"},
-                body: JSON.stringify(body)
-            });
-            const data = await r.json();
-            onToast?.(data.message || "Done", "success");
-            await refreshMutes();
-        } catch (e) {
-            onToast?.("Error: "+e, "error");
-        } finally {
-            setLoading(null);
-        }
-    };
-
-    const refreshMutes = async () => {
-        const r = await fetch(`${API}/api/actions/mutes`);
-        setMutes(await r.json());
-    };
-
-    useEffect(()=>{ refreshMutes(); const t=setInterval(refreshMutes, 10000); return ()=>clearInterval(t); },[]);
-
-    const muted = mutes.find(m=>m.city_name===city);
-
-    return (
-        <div className="card actionbar">
-            <b>City</b>
-            <select value={city} onChange={e=>setCity(e.target.value)}>
-                {cities.map(c=><option key={c}>{c}</option>)}
-            </select>
-
-            <b>Mute</b>
-            <input type="number" value={minutes} min={5} max={120} onChange={e=>setMinutes(+e.target.value)} />
-            <button className="btn" disabled={loading==='mute'} onClick={()=>post("/api/actions/mute_city",{city, minutes},'mute')}>Mute alerts</button>
-            <button className="btn ghost" disabled={loading==='unmute'} onClick={()=>post("/api/actions/unmute_city",{city},'unmute')}>Unmute</button>
-            {muted ? <span className="badge">🔕 Muted until {new Date(muted.until).toLocaleTimeString()}</span>
-                : null}
-
-            <b>Surge x</b>
-            <input type="number" step="0.5" value={mult} min={1} max={5} onChange={e=>setMult(+e.target.value)} />
-            <button className="btn" disabled={loading==='surge'} onClick={()=>post("/api/actions/trigger_surge",{city, multiplier: mult, minutes},'surge')}>Trigger surge</button>
-
-            <button className="btn" disabled={loading==='retrain'} onClick={()=>post("/api/retrain",{},'retrain')}>Retrain ETA model</button>
-        </div>
-    );
-}
+// function ActionBar({ onToast }) {
+//     const [city, setCity] = useState("Tunis");
+//     const [minutes, setMinutes] = useState(15);
+//     const [mult, setMult] = useState(2.0);
+//     const [loading, setLoading] = useState(null);
+//     const [mutes, setMutes] = useState([]);
+//     const cities = ["Tunis","Ariana","Ben Arous","Manouba","Sousse","Monastir","Nabeul","Sfax","Gabes","Medenine","Kairouan","Sidi Bouzid","Kasserine","Kef","Bizerte","Zaghouan","Siliana","Gafsa","Tozeur","Kebili","Tataouine","Jendouba","Beja","Mahdia"];
+//
+//     const post = async (path, body, key) => {
+//         try {
+//             setLoading(key);
+//             const r = await fetch(`${API}${path}`, {
+//                 method: "POST",
+//                 headers: {"Content-Type":"application/json"},
+//                 body: JSON.stringify(body)
+//             });
+//             const data = await r.json();
+//             onToast?.(data.message || "Done", "success");
+//             await refreshMutes();
+//         } catch (e) {
+//             onToast?.("Error: "+e, "error");
+//         } finally {
+//             setLoading(null);
+//         }
+//     };
+//
+//     const refreshMutes = async () => {
+//         const r = await fetch(`${API}/api/actions/mutes`);
+//         setMutes(await r.json());
+//     };
+//
+//     useEffect(()=>{ refreshMutes(); const t=setInterval(refreshMutes, 10000); return ()=>clearInterval(t); },[]);
+//
+//     const muted = mutes.find(m=>m.city_name===city);
+//
+//     return (
+//         <div className="card actionbar">
+//             <b>City</b>
+//             <select value={city} onChange={e=>setCity(e.target.value)}>
+//                 {cities.map(c=><option key={c}>{c}</option>)}
+//             </select>
+//
+//             <b>Mute</b>
+//             <input type="number" value={minutes} min={5} max={120} onChange={e=>setMinutes(+e.target.value)} />
+//             <button className="btn" disabled={loading==='mute'} onClick={()=>post("/api/actions/mute_city",{city, minutes},'mute')}>Mute alerts</button>
+//             <button className="btn ghost" disabled={loading==='unmute'} onClick={()=>post("/api/actions/unmute_city",{city},'unmute')}>Unmute</button>
+//             {muted ? <span className="badge">🔕 Muted until {new Date(muted.until).toLocaleTimeString()}</span>
+//                 : null}
+//
+//             <b>Surge x</b>
+//             <input type="number" step="0.5" value={mult} min={1} max={5} onChange={e=>setMult(+e.target.value)} />
+//             <button className="btn" disabled={loading==='surge'} onClick={()=>post("/api/actions/trigger_surge",{city, multiplier: mult, minutes},'surge')}>Trigger surge</button>
+//
+//             <button className="btn" disabled={loading==='retrain'} onClick={()=>post("/api/retrain",{},'retrain')}>Retrain ETA model</button>
+//         </div>
+//     );
+// }
 
 /* ------------------------ PAGES ------------------------------- */
 function OverviewPage() {
@@ -300,7 +300,7 @@ function OverviewPage() {
             </div>
 
 
-            <ActionBar onToast={push} />
+            {/*<ActionBar onToast={push} />*/}
 
             <h3>Live Alerts</h3>
             <div className="toasts">
@@ -320,7 +320,7 @@ function OverviewPage() {
 
             <div className="grid2">
                 <PressureTop />
-                <Recommendations />
+                {/*<Recommendations />*/}
             </div>
             <div className="row2 full">
                 <RestaurantMap />
