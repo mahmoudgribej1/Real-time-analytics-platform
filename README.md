@@ -1,4 +1,4 @@
-# 🌊 Flavor Trend - Streaming Infrastructure & Web Platform
+# Streaming Infrastructure & Web Platform
 
 > Complete infrastructure, CDC configuration, and web application for real-time food delivery analytics
 
