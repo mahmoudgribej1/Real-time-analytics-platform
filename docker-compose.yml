@@ -253,7 +253,7 @@ services:
     environment:
       SUPERSET_SECRET_KEY: 'change_this_to_a_strong_random_string'
       SUPERSET_DATABASE_URI: 'sqlite:////app/superset_home/superset.db'
-      MAPBOX_API_KEY: "pk.eyJ1IjoibWFobW91ZGdyaWJlaiIsImEiOiJjbWFyM2s0OTYwMW4yMmpzaGk1dXBnZTI4In0.0kckKejtizS8Hl2J6y4iuQ"
+      MAPBOX_API_KEY: "******"
     ports:
       - "8088:8088"
     volumes:
