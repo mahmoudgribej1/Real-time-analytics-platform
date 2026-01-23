@@ -28,7 +28,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 ### Key Design Decisions
 
 *Kappa Architecture*
-![Kappa](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/88dc80c786261ba8413390e3208783370441bebc/images/kappa.png)
+![Kappa](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/a3fd21f25a4d1a315e8d5758d55c9cf386bda599/images/kappa.png)
 
 **Kappa Over Lambda** - Single stream processing path eliminates batch layer complexity and code duplication
 
@@ -44,7 +44,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 
 ### Change Data Capture
 
-![Debezium Connectors](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/debezium%20connectors.PNG)
+![Debezium Connectors](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/a3fd21f25a4d1a315e8d5758d55c9cf386bda599/images/Screenshot%202026-01-23%20011551.png)
 *Active CDC connectors streaming orders, reviews, and weather updates to Kafka*
 
 **Architecture:**
@@ -57,7 +57,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 
 ### Stream Processing
 
-![Flink Jobs](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/flink_jobs.png)
+![Flink Jobs](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/a3fd21f25a4d1a315e8d5758d55c9cf386bda599/images/flink_jobs.png)
 *Flink JobManager showing 8 concurrent jobs with 100% checkpoint success rate*
 
 **Job Architecture:**
@@ -81,7 +81,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 
 ### Machine Learning Pipeline
 
-![MLflow Tracking](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/mlflowtracking.png)
+![MLflow Tracking](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/a3fd21f25a4d1a315e8d5758d55c9cf386bda599/images/mlflowtracking.png)
 *Experiment tracking showing model performance and artifacts*
 
 **Training:**
@@ -104,31 +104,31 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 
 ### Superset live dashboards
 
-![Orders Dashboard](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/dashboard%201%20.jpg)
-![SLA violations Dashboard](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/real-time-delivery-sla-monitor-2025-05-29T02-28-06.184Z.jpg)
+![Orders Dashboard](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/dashboard%201%20.jpg)
+![SLA violations Dashboard](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/real-time-delivery-sla-monitor-2025-05-29T02-28-06.184Z.jpg)
 
 ### Web Application
 *Overview Page*
-![Overview](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/overview.png)
-![Live Restaurant and Courier tracking](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/Screenshot%202026-01-23%20013755.png)
-![Live Sentiment Analysis](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/sentimentpanel.png)
-![SLA Alerts](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/sla.png)
-![Top Restaurants and Dishes of the day](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/toptoday.png)
+![Overview](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/overview.png)
+![Live Restaurant and Courier tracking](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/Screenshot%202026-01-23%20013755.png)
+![Live Sentiment Analysis](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/sentimentpanel.png)
+![SLA Alerts](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/sla.png)
+![Top Restaurants and Dishes of the day](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/toptoday.png)
 
 *Dashboards Page*
-![Superset Embedded Dashboards](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/dashboards.png)
+![Superset Embedded Dashboards](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/dashboards.png)
 
 *Dynamic SLA violations Tracking Page*
-![Dynamic SLA tracking](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/dynamicslam.png)
+![Dynamic SLA tracking](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/dynamicslam.png)
 
 *Live Weather Impact Page*
-![Weather Page](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/weather.png)
+![Weather Page](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/weather.png)
 
 *Routes Page*
-[!Routes](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/routess.png)
+[!Routes](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/routess.png)
 
 *Scenario Page*
-![Scenarios](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/routess.png)
+![Scenarios](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/scenarios.png)
 
 *Replay Page*
 ![Replay](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/replayy.png)
@@ -139,8 +139,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 - Endpoints: KPIs, violations, sentiment, routes, predictions
 
 *API Architecture*
-![API](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/b750383f4d744616d2c06e72cea865335b453fca/apiarchitecturee.png)
-
+![API](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/apiarchitecturee.png)
 **Notifier Service:**
 - Kafka consumer bridging to WebSocket
 - Broadcasts events: SLA violations, predictions, feature updates
@@ -158,7 +157,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 
 ## Performance Metrics
 
-![Checkpoint Dashboard](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/checkpoints.png)
+![Checkpoint Dashboard](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/checkpoints.png)
 *Checkpoint metrics showing 100% success rate and 121ms average duration*
 
 ### System Performance
@@ -203,8 +202,7 @@ docker exec airflow-scheduler airflow dags trigger realtime_pipeline
 ### Orchestration
 
 **Startup Pipeline (Airflow DAG):**
-![pipelineDAG](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/b750383f4d744616d2c06e72cea865335b453fca/pipelineDAG.png)
-1. Health checks (Docker, Flink REST API)
+![pipelineDAG](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/pipelineDAG.png)
 2. Start data generator
 3. Submit Flink jobs in dependency order:
    - Group 1 (parallel): KPI, SLA, Sentiment
@@ -212,7 +210,7 @@ docker exec airflow-scheduler airflow dags trigger realtime_pipeline
    - Sequential: ML Inference → Dynamic SLA
 
 **Teardown Pipeline:**
-![teardownDAG](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/b750383f4d744616d2c06e72cea865335b453fca/pipelineteardownDAG.png)
+![teardownDAG](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/pipelineteardownDAG.png)
 1. Cancel all Flink jobs via REST API
 2. Stop data generator
 3. Flush Kafka consumer offsets
@@ -235,7 +233,7 @@ flavor-trend-streamsPFE/
 ```
 
 **Related Repository:**  
-[Flink Stream Processor](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/b750383f4d744616d2c06e72cea865335b453fca/flink_jobs.png) - All 8 Flink jobs, PyFlink ML inference, and training pipeline
+[Flink Stream Processor](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/flink_jobs.png) - All 8 Flink jobs, PyFlink ML inference, and training pipeline
 
 ---
 
