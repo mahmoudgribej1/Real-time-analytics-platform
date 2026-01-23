@@ -233,7 +233,7 @@ flavor-trend-streamsPFE/
 ```
 
 **Related Repository:**  
-[Flink Stream Processor](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/7f899524ad8f329c76e553f5521039a3cf564523/images/flink_jobs.png) - All 8 Flink jobs, PyFlink ML inference, and training pipeline
+[Flink Stream Processor](https://github.com/mahmoudgribej1/flavor-trend-flink-processor) - All 8 Flink jobs, PyFlink ML inference, and training pipeline
 
 ---
 
