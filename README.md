@@ -13,7 +13,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 
 ## System Architecture
 
-![System Architecture](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2ee63d202e72f2b947c2561cc075b1cde3341cae/sysArchi.png)
+![System Architecture](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/2843f0a39ba3be417e49c12b75a6acd2298cef28/images/sysArchi.png)
 *Complete six-layer Kappa architecture from CDC ingestion through ML inference to real-time presentation*
 
 ### Architecture Layers
@@ -28,7 +28,7 @@ Production-grade streaming analytics platform for food delivery operations. Proc
 ### Key Design Decisions
 
 *Kappa Architecture*
-![Kappa](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/88dc80c786261ba8413390e3208783370441bebc/kappa.png)
+![Kappa](https://github.com/mahmoudgribej1/Real-time-analytics-platform/blob/88dc80c786261ba8413390e3208783370441bebc/images/kappa.png)
 
 **Kappa Over Lambda** - Single stream processing path eliminates batch layer complexity and code duplication
 
