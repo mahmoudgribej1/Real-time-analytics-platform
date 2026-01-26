@@ -3,6 +3,10 @@
 [![Apache Flink](https://img.shields.io/badge/Apache%20Flink-1.18.0-E6526F?logo=apache-flink)](https://flink.apache.org/)
 [![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-7.6.1-231F20?logo=apache-kafka)](https://kafka.apache.org/)
 [![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-2.9-017CEE?logo=apache-airflow)](https://airflow.apache.org/)
+[![MLflow](https://img.shields.io/badge/MLflow-2.14.1-0194E2?logo=mlflow)](https://mlflow.org/)
+[![Debezium](https://img.shields.io/badge/Debezium-2.5.0-FF6600)](https://debezium.io/)
+[![Apache Superset](https://img.shields.io/badge/Apache%20Superset-2.1.3-20A6C9)](https://superset.apache.org/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.0-4169E1?logo=postgresql)](https://www.postgresql.org/)
 [![React](https://img.shields.io/badge/React-18.0-61DAFB?logo=react)](https://react.dev/)
 
