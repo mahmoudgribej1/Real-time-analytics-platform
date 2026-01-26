@@ -2,7 +2,7 @@
 
 [![Apache Flink](https://img.shields.io/badge/Apache%20Flink-1.18.0-E6526F?logo=apache-flink)](https://flink.apache.org/)
 [![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-7.6.1-231F20?logo=apache-kafka)](https://kafka.apache.org/)
-[![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-2.x-017CEE?logo=apache-airflow)](https://airflow.apache.org/)
+[![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-2.9-017CEE?logo=apache-airflow)](https://airflow.apache.org/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16.0-4169E1?logo=postgresql)](https://www.postgresql.org/)
 [![React](https://img.shields.io/badge/React-18.0-61DAFB?logo=react)](https://react.dev/)
 
